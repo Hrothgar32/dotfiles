@@ -1,0 +1,5 @@
+#+TITLE: Dashboard
+#+KEYMAP: s | mu4e-headers-search
+[[mu:flag:unread][Unread]] /[[mu:flag:unread|(%3d)][+++++]]
+
+[[mu:maildir:"/Inbox"][Inbox]]  /[[mu:date:today..now|(%3d)][(  2)]]/ .... [i]  [[mu:date:2d..today and not date:today..now][Yesterday]] /[[mu:date:2d..today and not date:today..now|(%3d)][( 19)]]/ ...... [y]  *Update* ....... [U]
