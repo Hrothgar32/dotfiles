@@ -480,6 +480,19 @@
 
 ;; (add-to-list 'dired-compress-files-alist '("\\.gz\\'" . "tar $o -r --filesync $i"))
 
+  (defun dired-dotfiles-toggle ()
+    "Show/hide dot-files"
+    (interactive)
+    (when (equal major-mode 'dired-mode)
+      (if (or (not (boundp 'dired-dotfiles-show-p)) dired-dotfiles-show-p) ; if currently showing
+	  (progn
+	    (set (make-local-variable 'dired-dotfiles-show-p) nil)
+	    (message "h")
+	    (dired-mark-files-regexp "^\\\.")
+	    (dired-do-kill-lines))
+	(progn (revert-buffer) ; otherwise just revert to re-show
+	       (set (make-local-variable 'dired-dotfiles-show-p) t)))))
+
 (use-package! org-super-agenda
   :config
   (org-super-agenda-mode 1)
@@ -528,3 +541,10 @@
             ("on" "Project notes" entry #'+org-capture-central-project-notes-file "* %U %?\n %i\n %a" :heading "Notes" :prepend t)
             ("oc" "Project changelog" entry #'+org-capture-central-project-changelog-file "* %U %?\n %i\n %a" :heading "Changelog" :prepend t))
        ))
+
+(defun alm/build-and-deploy-blog()
+  "Builds and deploys my blog."
+  (interactive)
+  (let* ((build-string "hugo && rsync -avz --delete public/ almer:/var/www/html/almos-blog/public"))
+         (message "%s" (shell-command-to-string build-string))))
+(map! :leader :desc "Deploy the blog." "d b" #'alm/build-and-deploy-blog)

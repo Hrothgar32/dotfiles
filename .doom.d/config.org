@@ -989,6 +989,7 @@ executed each time such a buffer gets saved.
 #+end_src
 
 * Dired setup
+** Core setup
 
 #+begin_src emacs-lisp
 ;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
@@ -1003,6 +1004,23 @@ executed each time such a buffer gets saved.
 ;; (add-to-list 'dired-compress-files-alist '("\\.gz\\'" . "tar $o -r --filesync $i"))
 
 
+#+end_src
+
+** Hide dotfiles
+
+#+begin_src emacs-lisp
+  (defun dired-dotfiles-toggle ()
+    "Show/hide dot-files"
+    (interactive)
+    (when (equal major-mode 'dired-mode)
+      (if (or (not (boundp 'dired-dotfiles-show-p)) dired-dotfiles-show-p) ; if currently showing
+	  (progn
+	    (set (make-local-variable 'dired-dotfiles-show-p) nil)
+	    (message "h")
+	    (dired-mark-files-regexp "^\\\.")
+	    (dired-do-kill-lines))
+	(progn (revert-buffer) ; otherwise just revert to re-show
+	       (set (make-local-variable 'dired-dotfiles-show-p) t)))))
 #+end_src
 
 * Agenda Setup
@@ -1063,3 +1081,13 @@ executed each time such a buffer gets saved.
        ))
 #+end_src
 
+* Blog setup
+
+#+begin_src emacs-lisp
+(defun alm/build-and-deploy-blog()
+  "Builds and deploys my blog."
+  (interactive)
+  (let* ((build-string "hugo && rsync -avz --delete public/ almer:/var/www/html/almos-blog/public"))
+         (message "%s" (shell-command-to-string build-string))))
+(map! :leader :desc "Deploy the blog." "d b" #'alm/build-and-deploy-blog)
+#+end_src
