@@ -10,4 +10,4 @@
 
   # Fire it up
   # exec dbus-launch --exit-with-session emacs -mm -l ~/.doom.d/desktop.el
-  exec dbus-launch --exit-with-session emacs -mm
+  exec emacs -mm

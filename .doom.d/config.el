@@ -39,8 +39,8 @@
 
 (defun alm/lock-screen()
   (interactive)
-  (start-process-shell-command)
-  "i3lock-fancy" nil "i3lock-fancy")
+  (start-process-shell-command
+  "i3lock-fancy" "*i3lock*" "i3lock-fancy -n"))
 
 (defun alm/spotify-toggle()
   (interactive)
@@ -63,6 +63,14 @@
 (add-hook 'exwm-update-class-hook #'alm/exwm-update-class)
 (add-hook 'exwm-init-hook #'alm/exwm-init-hook)
 
+(defun alm/make-screenshot(picture-dir picture-name)
+  (interactive (list (read-directory-name "Select image directory: ")
+                     (read-string "Image name: ")))
+  (let* ((image-absolute-path (concat picture-dir picture-name))
+         (shell-string (concat "scrot -s -e 'mv $f " image-absolute-path "'")))
+    (start-process-shell-command
+     "scrot" nil shell-string)))
+
 (map! :leader "d w" 'alm/choose-wallpaper)
 (map! :leader "d r" 'alm/set-random-wallpaper)
 
@@ -77,6 +85,7 @@
   (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal")
 
   (alm/set-random-wallpaper)
+  (alm/connect-to-nextcloud)
   ;; (require 'exwm-systemtray)
   ;; (setq exwm-systemtray-height 32)
   ;; (exwm-systemtray-enable)
@@ -118,6 +127,7 @@
         ([?\s-D] . alm/spotify-next)
         ([?\s-Q] . alm/kill-and-close)
         ([?\s-X] . alm/lock-screen)
+        ([?\s-C] . alm/make-screenshot)
 
 
         ;; Launching applications
@@ -176,6 +186,7 @@
 
 (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
 (add-to-list 'org-structure-template-alist '("cpp" . "src C++"))
 
 (setq user-full-name  "Almos-Agoston Zediu"
@@ -245,6 +256,12 @@
 
 (map! :leader "t m d" 'load-dark-mode)
 (map! :leader "t m l" 'load-light-mode)
+
+(use-package all-the-icons-ivy-rich
+  :init (all-the-icons-ivy-rich-mode 1))
+
+(use-package ivy-rich
+  :init (ivy-rich-mode 1))
 
 (use-package dashboard
   :init      ;; tweak dashboard config before loading it
@@ -493,26 +510,7 @@
 	(progn (revert-buffer) ; otherwise just revert to re-show
 	       (set (make-local-variable 'dired-dotfiles-show-p) t)))))
 
-(use-package! org-super-agenda
-  :config
-  (org-super-agenda-mode 1)
-  (setq org-super-agenda-groups
-        '(
-          (:name "Today"
-           :date today
-           :time-grid t
-           :todo "TODAY")
-          (:name "Important"
-           :tag "számla"
-           :priority "A")
-          (:not)))
-  )
-  :after
-  (setq org-super-agenda-header-map nil)
-
-(setq org-agenda-files '("~/Org/agenda.org"
-                         "~/Org/orarend.org"
-                         "~/Org/projektek"))
+(setq org-agenda-files '("~/nextcloud/org-doksik/agenda.org"))
 (setq org-todo-keywords-for-agenda
       (quote ((sequence "TODO(t)" "NEXT(p)" "WAIT(w)" "CANCELLED" "DONE(r)")
               (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))))

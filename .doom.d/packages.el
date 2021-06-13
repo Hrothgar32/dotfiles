@@ -59,13 +59,13 @@
 (package! polymode)
 (package! all-the-icons-dired)
 (package! treemacs-all-the-icons)
-(package! org-super-agenda)
 (package! dired-dd)
 (package! org-pandoc-import
   :recipe (:host github
            :repo "tecosaur/org-pandoc-import"
            :files ("*.el" "filters" "preprocessors")))
 (package! dashboard)
+(package! all-the-icons-ivy-rich)
 ;; Doom's packages are pinned to a specific commit and updated from release to
 ;; release. The `unpin!' macro allows you to unpin single packages...
 ;(unpin! pinned-package)
