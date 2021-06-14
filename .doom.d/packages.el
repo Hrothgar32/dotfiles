@@ -64,8 +64,11 @@
   :recipe (:host github
            :repo "tecosaur/org-pandoc-import"
            :files ("*.el" "filters" "preprocessors")))
-(package! dashboard)
 (package! all-the-icons-ivy-rich)
+(package! mathpix.el
+  :recipe (:host github
+           :repo "jethrokuan/mathpix.el"
+           :files ("*.el" "filters" "preprocessors")))
 ;; Doom's packages are pinned to a specific commit and updated from release to
 ;; release. The `unpin!' macro allows you to unpin single packages...
 ;(unpin! pinned-package)

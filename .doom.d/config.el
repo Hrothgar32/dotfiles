@@ -1,9 +1,19 @@
 (defun alm/exwm-update-class ()
   (exwm-workspace-rename-buffer exwm-class-name))
 
+(defun alm/everywhere()
+  (interactive)
+  (start-process-shell-command
+   "bash" nil "doom nowhere"))
+
 (defun alm/connect-to-nextcloud()
   (start-process-shell-command
    "bash" nil "mount ~/nextcloud 1>/dev/null"))
+
+(defun alm/reboot()
+  (interactive)
+  (start-process-shell-command
+   "bash" nil "redo"))
 
 (defun alm/kill-and-close ()
   (interactive)
@@ -73,19 +83,19 @@
 
 (map! :leader "d w" 'alm/choose-wallpaper)
 (map! :leader "d r" 'alm/set-random-wallpaper)
+(map! :leader "r" 'alm/reboot)
 
 (use-package exwm
+  :init
+  (setq exwm-workspace-number 5
+        mouse-autoselect-windiw nil
+        focus-follows-mouse t
+        exwm-workspace-warp-cursor t)
   :config
-  (setq exwm-workspace-number 5)
-
-
   ;; Key resolution
   (require 'exwm-randr)
   (exwm-randr-enable)
   (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal")
-
-  (alm/set-random-wallpaper)
-  (alm/connect-to-nextcloud)
   ;; (require 'exwm-systemtray)
   ;; (setq exwm-systemtray-height 32)
   ;; (exwm-systemtray-enable)
@@ -128,6 +138,7 @@
         ([?\s-Q] . alm/kill-and-close)
         ([?\s-X] . alm/lock-screen)
         ([?\s-C] . alm/make-screenshot)
+        ([?\s-e] . alm/everywhere)
 
 
         ;; Launching applications
@@ -146,7 +157,9 @@
                         (exwm-workspace-switch-create ,i))))
                 (number-sequence 0 9))))
   (exwm-input-set-key (kbd "s-d") 'counsel-linux-app)
-  (exwm-enable))
+  (exwm-enable)
+  (alm/set-random-wallpaper)
+  (alm/connect-to-nextcloud))
 
 (defun alm/kill-panel()
   (interactive)
@@ -237,6 +250,7 @@
 
 (setq +workspaces-on-switch-project-behavior nil)
 
+(setq fancy-splash-image "~/.config/gnu.png")
 (load-theme 'doom-challenger-deep t)
 (set-frame-parameter (selected-frame) 'alpha '(89 . 89))
 (add-to-list 'default-frame-alist '(alpha . (89 . 89)))
@@ -262,24 +276,6 @@
 
 (use-package ivy-rich
   :init (ivy-rich-mode 1))
-
-(use-package dashboard
-  :init      ;; tweak dashboard config before loading it
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  (setq dashboard-banner-logo-title "rms died for our sins.")
-  ;;(setq dashboard-startup-banner 'logo) ;; use standard emacs logo as banner
-  (setq dashboard-startup-banner "~/.config/gnu.png")  ;; use custom image as banner
-  (setq dashboard-center-content nil) ;; set to 't' for centered content
-  (setq dashboard-items '((recents . 5)
-                          (agenda . 5 )
-                          (projects . 5)
-                          (registers . 5)))
-  :config
-  (dashboard-setup-startup-hook)
-  (dashboard-modify-heading-icons '((recents . "file-text")
-      (bookmarks . "book"))))
-(setq doom-fallback-buffer "*dashboard*")
 
 (defun terminal ()
   "Initialize or toggle terminal emulator
@@ -546,3 +542,9 @@
   (let* ((build-string "hugo && rsync -avz --delete public/ almer:/var/www/html/almos-blog/public"))
          (message "%s" (shell-command-to-string build-string))))
 (map! :leader :desc "Deploy the blog." "d b" #'alm/build-and-deploy-blog)
+
+(use-package mathpix.el
+  :custom ((mathpix-app-id "zold_almos_gmail_com_673916_1f69c5")
+           (mathpix-app-key "cab0eeec91a7c89af9a62a0cf31b1f5465c985b92b29035c8508cda789ff79d6"))
+  :bind
+  ("C-x m" . mathpix-screenshot))
