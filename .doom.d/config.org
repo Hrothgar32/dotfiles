@@ -1,6 +1,13 @@
 #+TITLE: Config
 #+PROPERTY: header-args:emacs-lisp :tangle ./config.el :mkdirp yes
 
+* Startup Performance
+Make startup faster.
+
+#+begin_src emacs-lisp
+(setq gc-cons-threshold (* 50 1000 1000))
+#+end_src
+
 * Window Management
 ** EXWM setup
 *** Utility functions
@@ -596,7 +603,7 @@ This launcher script is invoked by =EXWM.desktop= to start Emacs and load our de
 
   # Fire it up
   # exec dbus-launch --exit-with-session emacs -mm -l ~/.doom.d/desktop.el
-  exec emacs --mm
+  exec emacs -mm
 #+end_src
 
 * Structure Templates
@@ -822,7 +829,6 @@ I am writing something for testing.
 #+end_src
 
 * Org Mode
-
 ** General settings
 
 #+begin_src emacs-lisp
@@ -841,6 +847,9 @@ I am writing something for testing.
   :config
   (setq org-fancy-priorities-list '("⚡" "⬆" "⬇" "☕"))
   )
+
+(use-package! auto-fill
+  :hook (org-mode . auto-fill-mode-hook))
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -1114,4 +1123,76 @@ executed each time such a buffer gets saved.
            (mathpix-app-key "cab0eeec91a7c89af9a62a0cf31b1f5465c985b92b29035c8508cda789ff79d6"))
   :bind
   ("C-x m" . mathpix-screenshot))
+#+end_src
+
+# * Dashboard setup
+
+# #+begin_src emacs-lisp
+# (use-package dashboard
+#   :init      ;; tweak dashboard config before loading it
+#   (setq dashboard-set-heading-icons t)
+#   (setq dashboard-set-file-icons t)
+#   (setq dashboard-banner-logo-title "Emacs Is More Than A Text Editor!")
+#   ;;(setq dashboard-startup-banner 'logo) ;; use standard emacs logo as banner
+#   (setq dashboard-startup-banner "~/.config/gnu.png")  ;; use custom image as banner
+#   (setq dashboard-center-content nil) ;; set to 't' for centered content
+#   (setq dashboard-items '((recents . 5)
+#                           (agenda . 5 )
+#                           (bookmarks . 5)
+#                           (projects . 5)
+#                           (registers . 5)))
+#   :config
+#   (dashboard-setup-startup-hook)
+#   (dashboard-modify-heading-icons '((recents . "file-text")
+# 			      (bookmarks . "book"))))
+# #+end_src
+
+* IRC setup
+
+#+begin_src emacs-lisp
+(after! circe
+  (set-irc-server! "irc.libera.chat"
+    `(:tls t
+      :port 6697
+      :nick "Hrothgar32"
+      :sasl-username "Hrothgar32"
+      :sasl-password "agh54sdE561Q"
+      :channels ("#emacs"))))
+#+end_src
+
+* Reddit-post setup
+
+#+begin_src emacs-lisp
+(use-package reddit-post.el
+  )
+(setq reddit-post--oauth-refresh-token "50119615-Ye-KbYLsaAJjVbXbseRlcPYCaQCGXQ")
+#+end_src
+
+* Elfeed
+** Setup feeds
+
+#+begin_src emacs-lisp
+(setq rmh-elfeed-org-files '("~/org/elfeed.org"))
+(use-package elfeed-org
+  :config
+  (elfeed-org))
+#+end_src
+
+** Watch YouTube
+
+#+begin_src emacs-lisp
+(defun elfeed-v-mpv (url)
+  "Watch a video from URL in MPV"
+  (async-shell-command (format "mpv %s" url)))
+(defun elfeed-view-mpv (&optional use-generic-p)
+  "Youtube-feed link"
+  (interactive "P")
+  (let ((entries (elfeed-search-selected)))
+    (cl-loop for entry in entries
+     do (elfeed-untag entry 'unread)
+     when (elfeed-entry-link entry)
+     do (elfeed-v-mpv it))
+   (mapc #'elfeed-search-update-entry entries)
+   (unless (use-region-p) (forward-line))))
+(map! :leader "d v" 'elfeed-view-mpv)
 #+end_src

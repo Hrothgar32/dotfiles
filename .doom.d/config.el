@@ -1,3 +1,5 @@
+(setq gc-cons-threshold (* 50 1000 1000))
+
 (defun alm/exwm-update-class ()
   (exwm-workspace-rename-buffer exwm-class-name))
 
@@ -339,6 +341,9 @@
   (setq org-fancy-priorities-list '("⚡" "⬆" "⬇" "☕"))
   )
 
+(use-package! auto-fill
+  :hook (org-mode . auto-fill-mode-hook))
+
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
@@ -548,3 +553,36 @@
            (mathpix-app-key "cab0eeec91a7c89af9a62a0cf31b1f5465c985b92b29035c8508cda789ff79d6"))
   :bind
   ("C-x m" . mathpix-screenshot))
+
+(after! circe
+  (set-irc-server! "irc.libera.chat"
+    `(:tls t
+      :port 6697
+      :nick "Hrothgar32"
+      :sasl-username "Hrothgar32"
+      :sasl-password "agh54sdE561Q"
+      :channels ("#emacs"))))
+
+(use-package reddit-post.el
+  )
+(setq reddit-post--oauth-refresh-token "50119615-Ye-KbYLsaAJjVbXbseRlcPYCaQCGXQ")
+
+(setq rmh-elfeed-org-files '("~/org/elfeed.org"))
+(use-package elfeed-org
+  :config
+  (elfeed-org))
+
+(defun elfeed-v-mpv (url)
+  "Watch a video from URL in MPV"
+  (async-shell-command (format "mpv %s" url)))
+(defun elfeed-view-mpv (&optional use-generic-p)
+  "Youtube-feed link"
+  (interactive "P")
+  (let ((entries (elfeed-search-selected)))
+    (cl-loop for entry in entries
+     do (elfeed-untag entry 'unread)
+     when (elfeed-entry-link entry)
+     do (elfeed-v-mpv it))
+   (mapc #'elfeed-search-update-entry entries)
+   (unless (use-region-p) (forward-line))))
+(map! :leader "d v" 'elfeed-view-mpv)
