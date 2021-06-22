@@ -15,7 +15,7 @@
 (defun alm/reboot()
   (interactive)
   (start-process-shell-command
-   "bash" nil "redo"))
+   "bash" nil "reboot"))
 
 (defun alm/kill-and-close ()
   (interactive)
@@ -173,6 +173,7 @@
 
 (defun alm/start-panel()
   (interactive)
+  (start-process-shell-command "python" nil "python3 ~/.config/set_desktop_name.py")
   (setq alm/polybar-process (start-process-shell-command "poly" nil "polybar main")))
 
 ;; (defun geci ()
@@ -340,10 +341,6 @@
   :config
   (setq org-fancy-priorities-list '("⚡" "⬆" "⬇" "☕"))
   )
-
-(use-package! auto-fill
-  :hook (org-mode . auto-fill-mode-hook))
-
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
@@ -574,7 +571,7 @@
 
 (defun elfeed-v-mpv (url)
   "Watch a video from URL in MPV"
-  (async-shell-command (format "mpv %s" url)))
+  (start-process-shell-command "hello" nil (format "mpv %s" url)))
 (defun elfeed-view-mpv (&optional use-generic-p)
   "Youtube-feed link"
   (interactive "P")
