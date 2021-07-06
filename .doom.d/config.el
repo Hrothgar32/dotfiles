@@ -520,7 +520,7 @@
 (setq org-capture-templates
       (quote
             (("t" "Personal todo" entry
-            (file+headline "~/Org/agenda.org" "Random napi feladatok")
+            (file+headline "~/nextcloud/org-doksik/agenda.org" "Taskok")
             "* TODO %?\nSCHEDULED: <%(org-read-date)>")
             ("p" "Templates for projects")
             ("pt" "Project-local todo" entry
@@ -583,3 +583,9 @@
    (mapc #'elfeed-search-update-entry entries)
    (unless (use-region-p) (forward-line))))
 (map! :leader "d v" 'elfeed-view-mpv)
+
+;; (use-package! smudge
+;;   :config
+;;   (setq smudge-oauth2-client-secret "08611da8aa3d4e2a955d2b62e111cd6e")
+;;   (setq smudge-oauth2-client-id "1ab73d23869a44d99515fbf5ab6b06d8")
+;;   (define-key smudge-mode-map (kbd "C-c .") 'smudge-command-map))
