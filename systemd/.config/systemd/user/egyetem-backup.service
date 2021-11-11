@@ -1,0 +1,14 @@
+[Unit]
+Description=Backup my university files
+DefaultDependencies=no
+After=network.target
+
+[Service]
+Type=simple
+User=hrothgar32
+ExecStart=/usr/bin/rclone sync -L /home/hrothgar32/Documents/Egyetem nextcloud:Egyetem
+TimeoutStartSec=0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

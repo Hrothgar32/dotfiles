@@ -1,0 +1,1287 @@
+#+TITLE: Config
+#+PROPERTY: header-args:emacs-lisp :tangle ./config.el :mkdirp yes
+
+* Startup Performance
+Make startup faster.
+
+#+begin_src emacs-lisp
+(setq gc-cons-threshold 100000000)
+
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+
+(setq lsp-log-io nil)
+#+end_src
+
+* Window Management
+** EXWM setup
+*** Utility functions
+
+#+begin_src emacs-lisp
+(defun alm/exwm-update-class ()
+  (exwm-workspace-rename-buffer exwm-class-name))
+
+(defun alm/everywhere()
+  (interactive)
+  (start-process-shell-command
+   "bash" nil "doom nowhere"))
+
+(defun alm/connect-to-nextcloud()
+  (start-process-shell-command
+   "bash" nil "mount ~/nextcloud 1>/dev/null"))
+
+(defun alm/reboot()
+  (interactive)
+  (start-process-shell-command
+   "bash" nil "reboot"))
+
+(defun alm/kill-and-close ()
+  (interactive)
+  "Kill a buffer, and if possible, close it's window."
+   (kill-current-buffer)
+   (delete-window))
+
+(defun alm/exwm-update-title ()
+  (pcase exwm-class-name
+    ("Brave-browser" (exwm-workspace-rename-buffer (format "Brave: %s" exwm-title)))))
+
+  ;; When window title updates, use it to set the buffer name
+  (add-hook 'exwm-update-title-hook #'alm/exwm-update-title)
+
+(defun alm/set-chosen-wallpaper(wallpaper-file)
+  (start-process-shell-command
+   "feh" nil (concat "feh --bg-scale " wallpaper-file)))
+
+(defun alm/set-random-wallpaper()
+  (interactive)
+  (let* ((pictures (directory-files "~/.lightdm_images" t directory-files-no-dot-files-regexp)))
+   (alm/set-chosen-wallpaper (nth (random (length pictures)) pictures))))
+
+(defun alm/choose-wallpaper(wallpaper-file)
+  "Choose a wallpaper."
+  (interactive (list(read-file-name "Select wallpaper :" "~/.lightdm_images/")))
+  (alm/set-chosen-wallpaper wallpaper-file))
+
+(defun alm/set-wallpaper()
+  (interactive)
+  (start-process-shell-command
+   "feh" nil "feh --bg-scale /home/hrothgar32/.lightdm_images/futuristic.jpg"))
+
+(defun alm/lock-screen()
+  (interactive)
+  (start-process-shell-command
+  "i3lock-fancy" "*i3lock*" "i3lock-fancy -n"))
+
+(defun alm/spotify-toggle()
+  (interactive)
+  (start-process-shell-command
+   "playerctl" nil "playerctl --player=spotify play-pause"))
+
+(defun alm/spotify-previous()
+  (interactive)
+  (start-process-shell-command
+   "playerctl" nil "playerctl --player=spotify previous"))
+
+(defun alm/spotify-next()
+  (interactive)
+  (start-process-shell-command
+   "playerctl" nil "playerctl --player=spotify next"))
+
+(defun alm/exwm-init-hook ()
+  (alm/start-panel)
+  (alm/set-chosen-wallpaper "~/.lightdm_images/vhs_neon.png"))
+
+(add-hook 'exwm-update-class-hook #'alm/exwm-update-class)
+(add-hook 'exwm-init-hook #'alm/exwm-init-hook)
+#+end_src
+
+*** Make screenshot
+
+#+begin_src emacs-lisp
+(defun alm/make-screenshot(picture-dir picture-name)
+  (interactive (list (read-directory-name "Select image directory: ")
+                     (read-string "Image name: ")))
+  (let* ((image-absolute-path (concat picture-dir picture-name))
+         (shell-string (concat "scrot -s -e 'mv $f " image-absolute-path "'")))
+    (start-process-shell-command
+     "scrot" nil shell-string)))
+#+end_src
+
+*** Mappings
+#+begin_src emacs-lisp
+(map! :leader "d w" 'alm/choose-wallpaper)
+(map! :leader "d r" 'alm/set-random-wallpaper)
+(map! :leader "r r" 'alm/reboot)
+#+end_src
+
+*** EXWM Config
+
+
+#+begin_src emacs-lisp
+;; (use-package exwm
+;;   :init
+;;   (setq exwm-workspace-number 5
+;;         mouse-autoselect-windiw nil
+;;         focus-follows-mouse t
+;;         exwm-workspace-warp-cursor t)
+;;   :config
+;;   ;; Key resolution
+;;   (require 'exwm-randr)
+;;   (exwm-randr-enable)
+;;   (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal")
+;;   ;; (require 'exwm-systemtray)
+;;   ;; (setq exwm-systemtray-height 32)
+;;   ;; (exwm-systemtray-enable)
+;;   ;; Automatically send the mouse cursor to the selected workspace's display
+;;   (setq exwm-workspace-warp-cursor t)
+
+;; ;; These keys should always pass through to Emacs
+;; (setq exwm-input-prefix-keys
+;;     '(?\C-x
+;;       ?\C-u
+;;       ?\C-h
+;;       ?\M-x
+;;       ?\M-`
+;;       ?\M-&
+;;       ?\M-:
+;;       ?\C-\M-j  ;; Buffer list
+;;       ?\C-\
+;;       ))
+;; ;; Adding Space to the exwm-input-prefix
+;; (push ?\x20 exwm-input-prefix-keys)
+
+
+;;   (map! :map exwm-mode-map
+;; "C-q" 'exwm-input-send-next-key)
+
+;;   (setq exwm-input-global-keys
+;;         `(
+;;         ;; Reset to line-mode (C-c C-k switches to char-mode via exwm-input-release-keyboard)
+;;         ([?\s-r] . exwm-reset)
+;;         ([?\s-f] . exwm-layout-toggle-fullscreen)
+
+;;         ;; Move between windows
+;;         ([?\s-h] . windmove-left)
+;;         ([?\s-l] . windmove-right)
+;;         ([?\s-k] . windmove-up)
+;;         ([?\s-j] . windmove-down)
+;;         ([?\s-S] . alm/spotify-toggle)
+;;         ([?\s-A] . alm/spotify-previous)
+;;         ([?\s-D] . alm/spotify-next)
+;;         ([?\s-Q] . alm/kill-and-close)
+;;         ([?\s-X] . alm/lock-screen)
+;;         ([?\s-C] . alm/make-screenshot)
+;;         ([?\s-e] . alm/everywhere)
+
+
+;;         ;; Launching applications
+;;         ;; ([?\s-d] . (lambda (command)
+;;         ;;         (interactive (list (read-shell-command "$ ")))
+;;         ;;         (start-process-shell-command command nil command)))
+
+;;         ;; Switch workspace
+;;         ([?\s-w] . exwm-workspace-switch)
+
+;;         ;; 's-N': Switch to certain workspace with Super (Win) plus a number key (0 - 9)
+;;         ,@(mapcar (lambda (i)
+;;                 `(,(kbd (format "s-%d" i)) .
+;;                         (lambda ()
+;;                         (interactive)
+;;                         (exwm-workspace-switch-create ,i))))
+;;                 (number-sequence 0 9))))
+;;   (exwm-input-set-key (kbd "s-d") 'counsel-linux-app)
+;;   (alm/connect-to-nextcloud))
+
+#+end_src
+
+* Desktop Environment
+** Polybar config
+*** Panel management
+
+#+begin_src emacs-lisp
+(defun alm/kill-panel()
+  (interactive)
+  (when alm/polybar-process
+    (ignore-errors
+      (kill-process alm/polybar-process)))
+  (setq alm/polybar-process nil)
+  )
+
+(defun alm/start-panel()
+  (interactive)
+  (start-process-shell-command "python" nil "python3 ~/.config/set_desktop_name.py")
+  (setq alm/polybar-process (start-process-shell-command "poly" nil "polybar main")))
+#+end_src
+
+*** Panel updating mode
+
+#+begin_src emacs-lisp
+;; (defun geci ()
+;;   (pcase exwm--selected-input-mode
+;;     ('line-mode' )
+;;     ('char-mode' )
+;;     ))
+
+;; (defun alm/send-polybar-mode-hook ()
+;;   (setq szam (geci))
+;;   (start-process-shell-command "polybar-msg" nil
+;;                                "polybar-msg hook exwm-mode 1"))
+
+;; (add-hook 'exwm-input-input-mode-change-hook #'alm/send-polybar-mode-hook)
+#+end_src
+
+*** Main config file
+
+#+begin_src conf :tangle ~/.config/polybar/config
+;; _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+;;
+;;	    ____        __      __
+;;	   / __ \____  / /_  __/ /_  ____ ______
+;;	  / /_/ / __ \/ / / / / __ \/ __ `/ ___/
+;;	 / ____/ /_/ / / /_/ / /_/ / /_/ / /
+;;	/_/    \____/_/\__, /_.___/\__,_/_/
+;;	              /____/
+;;
+;; Created By Aditya Shakya @adi1090x
+;;
+;; _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+
+;; Global WM Settings
+
+[global/wm]
+; Adjust the _NET_WM_STRUT_PARTIAL top value
+; Used for top aligned bars
+margin-bottom = 0
+
+; Adjust the _NET_WM_STRUT_PARTIAL bottom value
+; Used for bottom aligned bars
+margin-top = 0
+
+;; _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+
+;; File Inclusion
+; include an external file, like module file, etc.
+
+include-file = ~/.config/polybar/colors.ini
+include-file = ~/.config/polybar/modules.ini
+include-file = ~/.config/polybar/user_modules.ini
+include-file = ~/.config/polybar/bars.ini
+
+;; _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+
+;; Bar Settings
+
+[bar/main]
+; Use either of the following command to list available outputs:
+; If unspecified, the application will pick the first one it finds.
+; $ polybar -m | cut -d ':' -f 1
+; $ xrandr -q | grep " connected" | cut -d ' ' -f1
+monitor =
+
+; Use the specified monitor as a fallback if the main one is not found.
+monitor-fallback =
+
+; Require the monitor to be in connected state
+; XRandR sometimes reports my monitor as being disconnected (when in use)
+monitor-strict = false
+
+; Tell the Window Manager not to configure the window.
+; Use this to detach the bar if your WM is locking its size/position.
+override-redirect = false
+
+; Put the bar at the bottom of the screen
+bottom = true
+
+; Prefer fixed center position for the `modules-center` block
+; When false, the center position will be based on the size of the other blocks.
+fixed-center = true
+
+; Dimension defined as pixel value (e.g. 35) or percentage (e.g. 50%),
+; the percentage can optionally be extended with a pixel offset like so:
+; 50%:-10, this will result in a width or height of 50% minus 10 pixels
+width = 100%
+height = 26
+
+; Offset defined as pixel value (e.g. 35) or percentage (e.g. 50%)
+; the percentage can optionally be extended with a pixel offset like so:
+; 50%:-10, this will result in an offset in the x or y direction
+; of 50% minus 10 pixels
+offset-x = 0%
+offset-y = 0%
+
+; Background ARGB color (e.g. #f00, #ff992a, #ddff1023)
+background = #DB07081A
+; Foreground ARGB color (e.g. #f00, #ff992a, #ddff1023)
+foreground = ${color.fg}
+
+; Background gradient (vertical steps)
+;   background-[0-9]+ = #aarrggbb
+;;background-0 =
+
+; Value used for drawing rounded corners
+; Note: This shouldn't be used together with border-size because the border
+; doesn't get rounded
+; Individual top/bottom values can be defined using:
+;   radius-{top,bottom}
+radius-top = 0.0
+radius-bottom = 0.0
+
+; Under-/overline pixel size and argb color
+; Individual values can be defined using:
+;   {overline,underline}-size
+;   {overline,underline}-color
+overline-size = 2
+overline-color = ${color.ac}
+
+; Values applied to all borders
+; Individual side values can be defined using:
+;   border-{left,top,right,bottom}-size
+;   border-{left,top,right,bottom}-color
+; The top and bottom borders are added to the bar height, so the effective
+; window height is:
+;   height + border-top-size + border-bottom-size
+; Meanwhile the effective window width is defined entirely by the width key and
+; the border is placed withing this area. So you effectively only have the
+; following horizontal space on the bar:
+;   width - border-right-size - border-left-size
+border-bottom-size = 0
+border-color = ${color.ac}
+
+; Number of spaces to add at the beginning/end of the bar
+; Individual side values can be defined using:
+;   padding-{left,right}
+padding = 0
+
+; Number of spaces to add before/after each module
+; Individual side values can be defined using:
+;   module-margin-{left,right}
+module-margin-left = 2
+module-margin-right = 1
+
+; Fonts are defined using <font-name>;<vertical-offset>
+; Font names are specified using a fontconfig pattern.
+;   font-0 = NotoSans-Regular:size=8;2
+;   font-1 = MaterialIcons:size=10
+;   font-2 = Termsynu:size=8;-1
+;   font-3 = FontAwesome:size=10
+; See the Fonts wiki page for more details
+
+;;font-0 = "Misc Termsyn:size=12;1"
+;;font-1 = "Wuncon Siji:size=12;1"
+
+font-0 = "Ubuntu Condensed:size=10;2"
+font-1 = "icomoon\-feather:size=10;2"
+font-2 = "xos4 Terminus:size=12;1"
+
+; Modules are added to one of the available blocks
+;   modules-left = cpu ram
+;   modules-center = xwindow xbacklight
+;   modules-right = ipc clock
+
+;; Available modules
+;;
+;alsa backlight battery
+;bspwm cpu date
+;filesystem github i3
+;memory mpd wired-network
+;network pulseaudio temperature
+;keyboard title workspaces
+;;
+;; User modules
+;checknetwork updates window_switch launcher powermenu sysmenu menu
+;;
+;; Bars
+;cpu_bar memory_bar filesystem_bar mpd_bar
+;volume brightness battery_bar
+
+modules-left = workspaces
+modules-center =
+modules-right = filesystem updates alsa battery keyboard  checknetwork weather date
+
+; The separator will be inserted between the output of each module
+separator =
+
+; This value is used to add extra spacing between elements
+; @deprecated: This parameter will be removed in an upcoming version
+spacing = 0
+
+; Opacity value between 0.0 and 1.0 used on fade in/out
+dim-value = 1.0
+
+; Value to be used to set the WM_NAME atom
+; If the value is empty or undefined, the atom value
+; will be created from the following template: polybar-[BAR]_[MONITOR]
+; NOTE: The placeholders are not available for custom values
+wm-name =
+
+; Locale used to localize various module data (e.g. date)
+; Expects a valid libc locale, for example: sv_SE.UTF-8
+locale =
+
+; Position of the system tray window
+; If empty or undefined, tray support will be disabled
+; NOTE: A center aligned tray will cover center aligned modules
+;
+; Available positions:
+;   left
+;   center
+;   right
+;   none
+tray-position = none
+
+; If true, the bar will not shift its
+; contents when the tray changes
+tray-detached = false
+
+; Tray icon max size
+tray-maxsize = 16
+
+; DEPRECATED! Since 3.3.0 the tray always uses pseudo-transparency
+; Enable pseudo transparency
+; Will automatically be enabled if a fully transparent
+; background color is defined using `tray-background`
+tray-transparent = false
+
+; Background color for the tray container
+; ARGB color (e.g. #f00, #ff992a, #ddff1023)
+; By default the tray container will use the bar
+; background color.
+tray-background = ${color.bg}
+
+; Tray offset defined as pixel value (e.g. 35) or percentage (e.g. 50%)
+tray-offset-x = 0
+tray-offset-y = 0
+
+; Pad the sides of each tray icon
+tray-padding = 0
+
+; Scale factor for tray clients
+tray-scale = 1.0
+
+; Restack the bar window and put it above the
+; selected window manager's root
+;
+; Fixes the issue where the bar is being drawn
+; on top of fullscreen window's
+;
+; Currently supported WM's:
+;   bspwm
+;   i3 (requires: `override-redirect = true`)
+; wm-restack =
+
+; Set a DPI values used when rendering text
+; This only affects scalable fonts
+; dpi =
+
+; Enable support for inter-process messaging
+; See the Messaging wiki page for more details.
+enable-ipc = true
+
+; Fallback click handlers that will be called if
+; there's no matching module handler found.
+; click-left =
+; click-middle =
+; click-right =
+; scroll-up =
+; scroll-down =
+; double-click-left =
+; double-click-middle =
+; double-click-right =
+
+; Requires polybar to be built with xcursor support (xcb-util-cursor)
+; Possible values are:
+; - default   : The default pointer as before, can also be an empty string (default)
+; - pointer   : Typically in the form of a hand
+; - ns-resize : Up and down arrows, can be used to indicate scrolling
+cursor-click =
+cursor-scroll =
+
+;; WM Workspace Specific
+
+; bspwm
+scroll-up = bspc desktop -f prev.local
+scroll-down = bspc desktop -f next.local
+
+;i3
+;;scroll-up = i3wm-wsnext
+;;scroll-down = i3wm-wsprev
+;;scroll-up = i3-msg workspace next_on_output
+;;scroll-down = i3-msg workspace prev_on_output
+
+;openbox
+;awesome
+;etc
+
+;; _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+
+;; Application Settings
+
+[settings]
+; The throttle settings lets the eventloop swallow up til X events
+; if they happen within Y millisecond after first event was received.
+; This is done to prevent flood of update event.
+;
+; For example if 5 modules emit an update event at the same time, we really
+; just care about the last one. But if we wait too long for events to swallow
+; the bar would appear sluggish so we continue if timeout
+; expires or limit is reached.
+throttle-output = 5
+
+; Time in milliseconds that the input handler will wait between processing events
+throttle-input-for = 30
+
+; Reload upon receiving XCB_RANDR_SCREEN_CHANGE_NOTIFY events
+screenchange-reload = false
+
+; Compositing operators
+; @see: https://www.cairographics.org/manual/cairo-cairo-t.html#cairo-operator-t
+compositing-background = source
+compositing-foreground = over
+compositing-overline = over
+compositing-underline = over
+compositing-border = over
+
+; Define fallback values used by all module formats
+format-foreground =
+format-background =
+format-underline =
+format-overline =
+format-spacing =
+format-padding =
+format-margin =
+format-offset =
+
+; Enables pseudo-transparency for the bar
+; If set to true the bar can be transparent without a compositor.
+pseudo-transparency = true
+
+;; _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+;;	    __________  ______
+;;	   / ____/ __ \/ ____/
+;;	  / __/ / / / / /_
+;;	 / /___/ /_/ / __/
+;;	/_____/\____/_/
+;;
+;; _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+#+end_src
+
+** Desktop Key Bindings
+
+#+begin_src emacs-lisp
+(use-package desktop-environment
+  :after exwm
+  :config (desktop-environment-mode)
+  :custom
+  (desktop-environment-brightness-small-increment "2%+")
+  (desktop-environment-brightness-small-decrement "2%-")
+  (desktop-environment-brightness-normal-increment "5%+")
+  (desktop-environment-brightness-normal-decrement "5%-"))
+#+end_src
+
+** Desktop file
+
+#+begin_src shell :tangle ./exwm/exwm.desktop :mkdirp yes
+[Desktop Entry]
+Name=EXWM
+Comment=Emacs Window Manager
+Exec=sh ~/.doom.d/exwm/start-exwm.sh
+TryExec=sh
+Type=Application
+X-LightDM-DesktopName=EXWM
+DesktopNames=EXWM
+#+end_src
+
+** Launcher Script
+
+This launcher script is invoked by =EXWM.desktop= to start Emacs and load our desktop environment configuration.  We also start up some other helpful applications to configure the desktop experience.
+
+#+begin_src shell :tangle ./exwm/start-exwm.sh :shebang #!/bin/sh
+
+  # Set the screen DPI (uncomment this if needed!)
+  # xrdb ~/.emacs.d/exwm/Xresources
+
+  # Run the menet compositor
+  picom -b &
+
+  # Enable screen locking on suspend
+  # xss-lock -- slock &
+
+  # Fire it up
+  # exec dbus-launch --exit-with-session emacs -mm -l ~/.doom.d/desktop.el
+  exec emacs -mm
+#+end_src
+
+* Structure Templates
+
+#+begin_src emacs-lisp
+(require 'org-tempo)
+
+(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
+(add-to-list 'org-structure-template-alist '("cpp" . "src C++"))
+(add-to-list 'org-structure-template-alist '("js" . "src js"))
+#+end_src
+
+* User-info
+I am writing something for testing.
+
+#+begin_src emacs-lisp
+(setq user-full-name  "Almos-Agoston Zediu"
+      user-mail-address "zold.almos@gmail.com")
+#+end_src
+
+* General fixes
+** Keybinds
+
+#+begin_src emacs-lisp
+(map! "C-i" 'evil-jump-forward)
+(setq-default tab-width 4)
+
+(map! :map makefile-mode-map
+      "." 'better-jumper-jump-forward)
+#+end_src
+
+** Native compilation
+
+#+begin_src emacs-lisp
+(setq package-native-compile t)
+#+end_src
+
+** Override keymaps
+
+#+begin_src emacs-lisp
+(require 'bind-key)
+(bind-key* "s-l" 'windmove-right)
+
+#+end_src
+
+** Hl-line mode
+
+#+begin_src emacs-lisp
+(global-hl-line-mode)
+#+end_src
+
+** Reload Emacs Config
+
+#+begin_src emacs-lisp
+(defun alm/reload-emacs-config ()
+"It relods my config."
+(interactive)
+  (load "~/.doom.d/config.el"))
+
+(map! :leader "h r c" 'alm/reload-emacs-config)
+#+end_src
+
+** Center Buffers
+
+#+begin_src emacs-lisp
+(defun alm/visual-fill()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t
+        display-line-numbers nil)
+  (visual-fill-column-mode 1))
+
+
+(add-hook 'org-mode-hook #'alm/visual-fill)
+(add-hook 'dired-mode-hook #'alm/visual-fill)
+#+end_src
+
+** Scale text
+
+#+begin_src emacs-lisp
+(defun alm/scale-text ()
+  (text-scale-increase 1))
+
+(add-hook 'org-mode-hook #'alm/scale-text)
+(add-hook 'dired-mode-hook #'alm/scale-text)
+#+end_src
+
+** Auto-switch to split windows
+
+#+begin_src emacs-lisp
+(setq evil-split-window-below t
+      evil-vsplit-window-right t)
+#+end_src
+
+** Workspace auto-switching
+
+#+begin_src emacs-lisp
+(setq +workspaces-on-switch-project-behavior t)
+#+end_src
+
+* Theme Configuration
+
+#+begin_src emacs-lisp
+
+(setq fancy-splash-image "~/.config/gnu.png")
+(load-theme 'doom-challenger-deep t)
+(set-frame-parameter (selected-frame) 'alpha '(89 . 89))
+(add-to-list 'default-frame-alist '(alpha . (89 . 89)))
+(add-to-list 'default-frame-alist '((width . 80) (height . 24))
+(defun load-dark-mode ()
+  "It loads my dark configuration."
+        (interactive)
+        (load-theme 'doom-challenger-deep t)
+        (set-frame-parameter (selected-frame) 'alpha '(89 . 75))
+        (add-to-list 'default-frame-alist '(alpha . (89 . 75))))
+
+(defun load-light-mode ()
+  "It loads my light configuration."
+        (interactive)
+        (load-theme 'doom-gruvbox-light t)
+        (set-frame-parameter (selected-frame) 'alpha '(89 . 89))
+        (add-to-list 'default-frame-alist '(alpha . (89 . 89))))
+
+(map! :leader "t m d" 'load-dark-mode)
+(map! :leader "t m l" 'load-light-mode)
+
+#+end_src
+
+* All-The-Icons-Ivy-Rich
+
+#+begin_src emacs-lisp
+(use-package all-the-icons-ivy-rich
+  :init (all-the-icons-ivy-rich-mode 1))
+
+(use-package ivy-rich
+  :init (ivy-rich-mode 1))
+#+end_src
+
+* Terminal Configuration
+** Pop Up terminal
+
+#+begin_src emacs-lisp
+(defun terminal ()
+  "Initialize or toggle terminal emulator
+ If the terminal window is visible hide it.
+ If a terminal buffer exists, but is not visible, show it.
+ If no terminal buffer exists for the current frame create and show it."
+  (interactive)
+  (multi-vterm-dedicated-toggle)
+  (evil-window-decrease-height 18))
+(map! :leader "l" #'terminal)
+#+end_src
+
+** Multi-VTerm
+
+#+begin_src emacs-lisp
+(map! "s-<return>" 'multi-vterm )
+#+end_src
+
+* Projectile Setup
+
+#+begin_src emacs-lisp
+
+#+end_src
+
+* Python setup
+
+#+begin_src emacs-lisp
+(use-package! python-black
+  :after python)
+(add-hook 'python-mode-hook 'python-black-on-save-mode)
+(add-hook 'python-mode-hook #'lsp) ; or lsp-deferred
+#+end_src
+
+* JS Setup
+
+#+begin_src emacs-lisp
+(add-hook 'js2-mode-hook 'lsp)
+#+end_src
+
+* Common Lisp setup
+
+#+begin_src emacs-lisp
+(setq inferior-lisp-program "/usr/bin/sbcl")
+(add-to-list 'load-path "/usr/share/emacs/site-lisp/slime/")
+(require 'slime)
+(slime-setup)
+#+end_src
+
+* Treemacs setup
+
+#+begin_src emacs-lisp
+(require 'treemacs)
+(map! :leader "x" 'treemacs)
+#+end_src
+
+* Webmode Setup
+
+#+begin_src emacs-lisp
+(defun alm/web-mode-hook ()
+ (setq web-mode-code-indent-offset 2))
+
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(setq web-mode-engines-alist
+      '(("php"    . "\\.phtml\\'")
+        ("blade"  . "\\.blade\\.")
+        ("django"   . "\\.html\\."))
+)
+(setq web-mode-enable-engine-detection t)
+(setq web-mode-code-indent-offset 2)
+(add-hook 'web-mode-hook 'alm/web-mode-hook)
+#+end_src
+
+* Org Mode
+** General settings
+
+#+begin_src emacs-lisp
+(require 'org-superstar)
+(add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))
+(setq org-directory "~/org/")
+(setq org-hide-block-startup t)
+(with-eval-after-load 'ox
+  (require 'ox-hugo))
+(setq org-priority-faces '((65: foreground-color "#660000")
+                           (66: foreground-color "#99FFFF")
+                           (67: foreground-color "#009150")))
+(use-package! org-fancy-priorities
+  :ensure t
+  :hook (org-mode . org-fancy-priorities-mode)
+  :config
+  (setq org-fancy-priorities-list '("⚡" "⬆" "⬇" "☕"))
+  )
+;; This determines the style of line numbers in effect. If set to `nil', line
+;; numbers are disabled. For relative line numbers, set this to `relative'.
+(setq display-line-numbers-type t)
+#+end_src
+
+** Automatic tangling
+This snippet adds a hook to a =org-mode= buffer so that the config file gets
+executed each time such a buffer gets saved.
+
+#+begin_src emacs-lisp
+(defun alm/org-babel-tangle-config ()
+  (when (string-equal (file-name-directory (buffer-file-name))
+                      (expand-file-name "~/.doom.d/"))
+    ;; Dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook  #'alm/org-babel-tangle-config)))
+#+end_src
+
+** Org Roam
+
+*** Basic setup
+
+#+begin_src emacs-lisp
+(use-package! org-roam
+  :init
+  (setq org-roam-v2-ack t)
+  (setq org-roam-db-autosync-mode t)
+  :custom
+  (org-roam-directory "~/RoamNotes")
+  (org-roam-completion-everywhere t)
+  (org-roam-dailies-capture-templates
+   '(("d" "default" entry
+      "* What have I achived today\n\n%?\n\n* What are things which weren't so good\n\n* Short summary"
+ :if-new  (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?"
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t)
+     ("p" "project" plain
+      "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: Project\n#+category: ${title}")
+      :unnarrowed t)
+     ("t" "tech tool" plain
+        (file "~/org/Templates/TechToolTemplate.org")
+        :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: tool")
+        :unnarrowed t)
+ ;;     ("b" "book notes" plain
+ ;; "\n* Source\n\nAuthor: %^{Author}\nTitle: ${title}\nYear: %^{Year}\n\n* Summary\n\n%?"
+ ;;    :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+ ;;    :unnarrowed t)
+     ))
+  (org-roam-complete-everywhere t)
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert))
+  :config
+  )
+#+end_src
+
+*** Org-Roam-UI
+
+#+begin_src emacs-lisp
+(use-package! websocket
+    :after org-roam)
+
+(use-package! org-roam-ui
+    :after org-roam ;; or :after org
+;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+;;         a hookable mode anymore, you're advised to pick something yourself
+;;         if you don't care about startup time, use
+;;  :hook (after-init . org-roam-ui-mode)
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t))
+
+
+#+end_src
+
+*** Org-Roam buffer display
+
+#+begin_src emacs-lisp
+     ;; (add-to-list 'display-buffer-alist
+     ;;              '("\\*org-roam\\*"
+     ;;                (display-buffer-in-side-window)
+     ;;                (side . right)
+     ;;                (slot . 0)
+     ;;                (window-width . 0.11)
+     ;;                (window-parameters . ((no-other-window . nil)
+     ;;                                      (no-delete-other-windows . nil)))))
+
+#+end_src
+
+* CMake Setup
+
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :config
+  (add-to-list 'yas-snippet-dirs "~/.doom.d/snippets/emacs-lisp-mode")
+  (add-to-list 'yas-snippet-dirs "~/.doom.d/snippets/emacs-lisp-mode/cmake-mode")
+  (yas-global-mode 1))
+
+(defun create-cmake-root(cmake-project-dir-string)
+  (let* ((cmake-file-string (concat cmake-project-dir-string "/CMakeLists.txt"))
+         (main-cpp-string (concat cmake-project-dir-string "/main.cpp"))
+         (build-folder-string (concat cmake-project-dir-string "/build"))
+         (debug-folder-string (concat build-folder-string "/Debug"))
+         (release-folder-string (concat build-folder-string "/Release")))
+        (dired-create-directory build-folder-string)
+        (dired-create-directory debug-folder-string)
+        (dired-create-directory release-folder-string)
+        (with-temp-buffer
+        (cmake-mode)
+        (yas-minor-mode)
+        (yas-expand-snippet (yas-lookup-snippet "cmake_project" 'cmake-mode))
+        (when (file-writable-p cmake-file-string)
+        (write-region (point-min)
+                        (point-max)
+                        cmake-file-string))
+        (delete-region (point-min)
+                       (point-max))
+        (cpp-mode)
+        (yas-minor-mode)
+        (yas-expand-snippet (yas-lookup-snippet "main_cpp" 'cpp-mode))
+        (when (file-writable-p main-cpp-string)
+        (write-region (point-min)
+                        (point-max)
+                        main-cpp-string)))
+    ))
+
+(defun create-cmake-project (project-root string)
+  "Creates a new C++ CMake project"
+  (interactive (list (read-directory-name "Select project root: ")
+                     (read-string "Name of the project: ")))
+  (setq cmake-project-name string)
+  (let* ((cmake-project-dir-string (concat project-root string)))
+                                  (dired-create-directory cmake-project-dir-string)
+                                  (create-cmake-root cmake-project-dir-string)
+                                  (projectile-add-known-project cmake-project-dir-string)))
+
+(defun build-cmake-project(mode)
+  "Builds a CMake project."
+  (let* ((release-mode-string "cmake -S . -B build/ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release && cmake --build build/ && ln -fs build/compile_commands.json")
+         (debug-mode-string "cmake -S . -B build/ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug && cmake --build build/ && ln -fs build/compile_commands.json"))
+    (if (equal mode "Debug")
+        (message "%s" (concat "Debug mode:\n" (shell-command-to-string debug-mode-string)))
+        (message "%s" (concat "Release mode:\n" (shell-command-to-string release-mode-string)))
+    )))
+
+(defun build-cmake-project-debug()
+  "Builds a CMake project in Debug mode."
+  (interactive)
+  (build-cmake-project "Debug"))
+
+(defun build-cmake-project-release()
+  "Builds a CMake project in Release mode."
+  (interactive)
+  (build-cmake-project "Release")
+  )
+
+(defun run-cmake-project (mode args)
+  "Run the CMake project."
+  (let* ((status-code-string "; echo \"Process exited with status code: $?\"")
+         (release-mode-string (concat "time ./build/Release/" (+workspace-current-name) " " args status-code-string))
+         (debug-mode-string (concat "time ./build/Debug/" (+workspace-current-name) " " args status-code-string)))
+    (if (equal mode "Debug")
+        (message "%s" (concat "Debug mode:\n" (shell-command-to-string debug-mode-string)))
+      (message "%s" (concat "Release mode:\n" (shell-command-to-string release-mode-string))))
+  ))
+
+(defun run-cmake-project-debug ()
+  "Run project in Debug mode."
+  (interactive)
+  (let* ((args (read-string "Give arguments, if any: ")))
+    (run-cmake-project "Debug" args))
+  )
+
+(defun run-cmake-project-release ()
+  "Run project in Release mode."
+  (interactive)
+  (let* ((args (read-string "Give arguments, if any: ")))
+    (run-cmake-project "Release" args))
+  )
+
+(map! :leader :desc "Create a CMake project" "m p" #'create-cmake-project)
+(map! :leader :desc "Build CMake project in Release mode." "m r" #'build-cmake-project-release)
+(map! :leader :desc "Build CMake project in Debug mode." "m z" #'build-cmake-project-debug)
+(map! :leader :desc "Run CMake project in Debug mode." "m Z" #'run-cmake-project-debug)
+(map! :leader :desc "Run CMake project in Release mode." "m R" #'run-cmake-project-release)
+#+end_src
+
+* Java Setup
+* VSCode cpptools setup
+
+#+begin_src emacs-lisp
+(require 'dap-lldb)
+(require 'dap-chrome)
+#+end_src
+
+* Email Setup
+
+#+begin_src emacs-lisp
+(use-package mu4e
+  ;; :load-path "/usr/share/emacs/site-lisp/mu4e/"
+  ;; :defer 20 ; Wait until 20 seconds after startup
+  :config
+
+  ;; This is set to 't' to avoid mail syncing issues when using mbsync
+  (setq mu4e-change-filenames-when-moving t)
+
+  ;; Refresh mail using isync every 10 minutes
+  (setq mu4e-update-interval (* 10 60))
+  (setq mu4e-get-mail-command "mbsync -a")
+  (setq mu4e-root-maildir "~/Mail")
+
+  (setq mu4e-drafts-folder "/[Gmail]/Drafts")
+  (setq mu4e-sent-folder   "/[Gmail]/Sent Mail")
+  (setq mu4e-refile-folder "/[Gmail]/All Mail")
+  (setq mu4e-trash-folder  "/[Gmail]/Trash")
+  (setq mu4e-maildir-shortcuts
+        '((:maildir "/Inbox"    :key ?i)
+        (:maildir "/[Gmail]/Sent Mail" :key ?s)
+        (:maildir "/[Gmail]/Trash"     :key ?t)
+        (:maildir "/[Gmail]/Drafts"    :key ?d)
+        (:maildir "/[Gmail]/All Mail"  :key ?a)))
+  (setq smtpmail-smtp-server "smtp.gmail.com"
+      smtpmail-smtp-service 465
+      smtpmail-stream-type 'ssl)
+  (setq message-send-mail-function 'smtpmail-send-it)
+  (setq mu4e-compose-signature "Almos Zediu")
+)
+
+(use-package org-mime
+  :ensure t)
+(map! :leader "o m" 'mu4e)
+#+end_src
+
+* Dired setup
+** Core setup
+
+#+begin_src emacs-lisp
+;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+;; (add-hook 'dired-mode-hook #'all-the-icons-dired-mode)
+
+(use-package dired-hide-details
+  :hook (dired-mode . dired-hide-details-mode))
+
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
+
+;; (add-to-list 'dired-compress-files-alist '("\\.gz\\'" . "tar $o -r --filesync $i"))
+
+
+#+end_src
+
+** Hide dotfiles
+
+#+begin_src emacs-lisp
+  (defun dired-dotfiles-toggle ()
+    "Show/hide dot-files"
+    (interactive)
+    (when (equal major-mode 'dired-mode)
+      (if (or (not (boundp 'dired-dotfiles-show-p)) dired-dotfiles-show-p) ; if currently showing
+	  (progn
+	    (set (make-local-variable 'dired-dotfiles-show-p) nil)
+	    (message "h")
+	    (dired-mark-files-regexp "^\\\.")
+	    (dired-do-kill-lines))
+	(progn (revert-buffer) ; otherwise just revert to re-show
+	       (set (make-local-variable 'dired-dotfiles-show-p) t)))))
+#+end_src
+
+* Agenda Setup
+
+** Basic agenda variables
+
+#+begin_src emacs-lisp
+;; (setq org-agenda-files '("~/nextcloud/org-doksik/agenda.org"))
+(setq org-todo-keywords-for-agenda
+      (quote ((sequence "TODO(t)" "NEXT(p)" "WAIT(w)" "CANCELLED" "DONE(r)")
+              (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))))
+
+(setq org-todo-keywords
+      (quote ((sequence "TODO(t)" "NEXT(p)" "WAIT(w)" "CANCELLED" "DONE(r)")
+              (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))))
+
+(setq org-capture-templates
+      (quote
+            (("t" "Personal todo" entry
+            (file+headline "~/org/todos.org" "Taskok")
+            "* TODO %?\nSCHEDULED: <%(org-read-date)>")
+            )
+       ))
+#+end_src
+
+** Building an agenda from tagged nodes
+
+#+begin_src emacs-lisp
+(require 'seq)
+
+(defun alm/org-roam-get-project-notes ()
+  (mapcar
+   #'org-roam-node-file
+   (seq-filter
+    (lambda (node)
+        (member "Project" (org-roam-node-tags node))
+      )
+    (org-roam-node-list))))
+
+(defun alm/org-roam-refresh-agenda (&rest _)
+  (setq org-agenda-files (append (alm/org-roam-get-project-notes) '("~/org/todos.org"))
+  ))
+
+(setq org-directory "~/RoamFiles")
+(setq org-agenda-files (alm/org-roam-get-project-notes))
+
+(advice-add 'org-agenda :before #'alm/org-roam-refresh-agenda)
+#+end_src
+
+* Blog setup
+
+#+begin_src emacs-lisp
+(defun alm/build-and-deploy-blog()
+  "Builds and deploys my blog."
+  (interactive)
+  (let* ((build-string "hugo && rsync -avz --delete public/ almer:/var/www/html/almos-blog/public"))
+         (message "%s" (shell-command-to-string build-string))))
+(map! :leader :desc "Deploy the blog." "d b" #'alm/build-and-deploy-blog)
+#+end_src
+
+* Diskette setup
+
+#+begin_src emacs-lisp
+(defun alm/build-and-deploy-diskette()
+  "Builds and deploys my diskette."
+  (interactive)
+  (let* ((build-string "hugo && rsync -avz --delete public/ second:/var/www/html/diskette-archives/public"))
+         (message "%s" (shell-command-to-string build-string))))
+(map! :leader :desc "Deploy the site." "d d" #'alm/build-and-deploy-diskette)
+#+end_src
+
+* Mathpix setup
+
+#+begin_src emacs-lisp
+(use-package mathpix.el
+  :custom ((mathpix-app-id "zold_almos_gmail_com_673916_1f69c5")
+           (mathpix-app-key "cab0eeec91a7c89af9a62a0cf31b1f5465c985b92b29035c8508cda789ff79d6"))
+  :bind
+  ("C-x m" . mathpix-screenshot))
+#+end_src
+
+* IRC setup
+
+#+begin_src emacs-lisp
+(after! circe
+  (set-irc-server! "irc.libera.chat"
+    `(:tls t
+      :port 6697
+      :nick "Hrothgar32"
+      :sasl-username "Hrothgar32"
+      :sasl-password "agh54sdE561Q"
+      :channels ("#emacs"))))
+#+end_src
+
+* Reddit-post setup
+
+#+begin_src emacs-lisp
+(use-package reddit-post.el
+  )
+(setq reddit-post--oauth-refresh-token "50119615-Ye-KbYLsaAJjVbXbseRlcPYCaQCGXQ")
+#+end_src
+
+* Elfeed
+** Setup feeds
+
+#+begin_src emacs-lisp
+(setq rmh-elfeed-org-files '("~/org/elfeed.org"))
+(use-package elfeed-org
+  :config
+  (elfeed-org))
+#+end_src
+
+** Watch YouTube
+
+#+begin_src emacs-lisp
+(defun elfeed-v-mpv (url)
+  "Watch a video from URL in MPV"
+  (start-process-shell-command "hello" nil (format "mpv %s" url)))
+(defun elfeed-view-mpv (&optional use-generic-p)
+  "Youtube-feed link"
+  (interactive "P")
+  (let ((entries (elfeed-search-selected)))
+    (cl-loop for entry in entries
+     do (elfeed-untag entry 'unread)
+     when (elfeed-entry-link entry)
+     do (elfeed-v-mpv it))
+   (mapc #'elfeed-search-update-entry entries)
+   (unless (use-region-p) (forward-line))))
+(map! :leader "d v" 'elfeed-view-mpv)
+#+end_src
+
+* Deft
+
+#+begin_src emacs-lisp
+(use-package deft
+  :after org
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (setq deft-use-filename-as-title t)
+  (deft-directory org-roam-directory))
+#+end_src
+
+* Popper
+
+#+begin_src emacs-lisp
+(use-package popper
+  :bind (("C-`"   . popper-toggle-latest)
+         ("M-`"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          "\\*meghanada-task\\*"
+          help-mode
+          compilation-mode
+          vterm-mode))
+  (popper-mode +1))
+#+end_src
+

@@ -1,0 +1,16 @@
+#!/bin/bash
+# changeLight
+
+# Arbitrary but unique message id
+msgId="991023"
+
+if [[ $1 == 'up' ]]; then
+    light -A 10
+else
+    light -U 10
+fi
+
+# Query for light level
+lightLevel=`light`
+dunstify -a "changeLight" -u low -i display-brightness-symbolic.symbolic -r "$msgId" \
+    -h int:value:"$lightLevel"  "Brightness: ${lightLevel}%"

@@ -1,0 +1,10 @@
+[Unit]
+Description=Backup timer
+
+[Timer]
+Unit=egyetem-backup.service
+OnCalendar=*-*-* 12:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

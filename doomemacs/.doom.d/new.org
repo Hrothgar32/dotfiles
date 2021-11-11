@@ -1,0 +1,10 @@
+#+TITLE: Pelda
+
+* C kod
+#+begin_src C++ :includes <iostream>
+std::cout << "Hello from org babel!";
+#+end_src
+
+#+begin_src shell
+ls
+#+end_src
