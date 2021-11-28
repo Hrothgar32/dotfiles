@@ -17,6 +17,9 @@ super + d
 super + w
 	rofi -show window
 
+alt + n
+	 pkill -USR1 redshift
+
 #ssh
 super + n
      rofi -show ssh
@@ -37,17 +40,17 @@ super + e
 
 # brightness
 XF86MonBrightnessUp
-    light -A 10
+    changeLight up
 XF86MonBrightnessDown
-    light -U 10
+    changeLight down
 #
 #Volume Control
 XF86AudioLowerVolume
-	amixer set Master 5%-
+	changeVolume 5%-
 XF86AudioRaiseVolume
-	amixer set Master 5%+
+	changeVolume 5%+
 XF86AudioMute
-    amixer set Master toggle
+        changeVolume toggle
 
 #Spotify
 super + {,shift + }s
@@ -69,7 +72,7 @@ super + {_,shift + }x
     betterlockscreen -l blur
 
 super + u
-    tdrop -a --wm bspwm alacritty
+    tdrop -a --wm bspwm -y 30 alacritty
 
 #hide/unhide focused window
 super + shift + i

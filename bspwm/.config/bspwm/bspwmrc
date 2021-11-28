@@ -5,7 +5,7 @@ pgrep -x sxhkd > /dev/null || sxhkd &
 bspc monitor -d 1 2 3 4 5
 
 bspc config border_width         1
-bspc config window_gap          10
+bspc config window_gap          5
 
 bspc config split_ratio          0.52
 bspc config borderless_monocle   true
@@ -35,6 +35,5 @@ ntfd &
 polybar main &
 wal -i ~/.lightdm_images/vhs_neon.png
 wmname LG3D
+/usr/lib/geoclue-2.0/demos/agent &
 xss-lock -- betterlockscreen -l blur
-easyeffects --gapplication-service &
-redshift -l 46.76667:23.6 &

@@ -2,7 +2,7 @@ configuration {
 /*	modi: "window,run,ssh";*/
 	font: "hack 14";
 	location: 6;
-	yoffset: -25;
+	yoffset: 0;
 /*	xoffset: 0;*/
 /*	fixed-num-lines: true;*/
 	show-icons: true;

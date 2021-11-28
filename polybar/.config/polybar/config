@@ -55,7 +55,7 @@ monitor-strict = false
 override-redirect = false
 
 ; Put the bar at the bottom of the screen
-bottom = true
+bottom = false
 
 ; Prefer fixed center position for the `modules-center` block
 ; When false, the center position will be based on the size of the other blocks.
@@ -134,9 +134,11 @@ module-margin-right = 1
 ;;font-0 = "Misc Termsyn:size=12;1"
 ;;font-1 = "Wuncon Siji:size=12;1"
 
-font-0 = "Ubuntu Condensed:size=10;2"
-font-1 = "icomoon\-feather:size=10;2"
-font-2 = "xos4 Terminus:size=12;1"
+font-0 = "Ubuntu Condensed:size=11;2"
+font-1 = "icomoon\-feather:size=11;2"
+font-2 = "MaterialIcons:size=11"
+font-3 = "WeatherIcons:size=11;1"
+font-4 = "xos4 Terminus:size=11;1"
 
 ; Modules are added to one of the available blocks
 ;   modules-left = cpu ram
@@ -160,8 +162,8 @@ font-2 = "xos4 Terminus:size=12;1"
 ;volume brightness battery_bar
 
 modules-left = workspaces
-modules-center =
-modules-right = filesystem updates alsa battery keyboard  checknetwork weather date
+modules-center = date
+modules-right = filesystem updates alsa battery keyboard  checknetwork weather
 
 ; The separator will be inserted between the output of each module
 separator =
