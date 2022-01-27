@@ -166,6 +166,11 @@
 ;;   (exwm-input-set-key (kbd "s-d") 'counsel-linux-app)
 ;;   (alm/connect-to-nextcloud))
 
+      (defun alm/rg-in-dir(initial-dir)
+        (interactive (read-directory-name "Select directory for search:"))
+        (counsel-rg "" initial-dir))
+    (map! :leader "]" 'alm/rg-in-dir)
+
 (defun alm/kill-panel()
   (interactive)
   (when alm/polybar-process
@@ -212,11 +217,29 @@
 (setq user-full-name  "Almos-Agoston Zediu"
       user-mail-address "zold.almos@gmail.com")
 
+(defun alm/set-dictionary-to-hungarian ()
+  (interactive)
+  (flyspell-mode-off)
+  (ispell-change-dictionary "hu_HU")
+  (flyspell-mode))
+
+(map! :leader "d h" 'alm/set-dictionary-to-hungarian)
+
+(defun alm/set-dictionary-to-english()
+  (interactive)
+  (flyspell-mode-off)
+  (ispell-change-dictionary "en_US")
+  (flyspell-mode))
+
+(map! :leader "d e" 'alm/set-dictionary-to-english)
+
 (map! "C-i" 'evil-jump-forward)
 (setq-default tab-width 4)
 
 (map! :map makefile-mode-map
       "." 'better-jumper-jump-forward)
+(map! :leader "[" 'counsel-fzf)
+(map! :leader "=" 'counsel-rg)
 
 (setq package-native-compile t)
 
@@ -238,14 +261,11 @@
         display-line-numbers nil)
   (visual-fill-column-mode 1))
 
-
-(add-hook 'org-mode-hook #'alm/visual-fill)
 (add-hook 'dired-mode-hook #'alm/visual-fill)
 
 (defun alm/scale-text ()
   (text-scale-increase 1))
 
-(add-hook 'org-mode-hook #'alm/scale-text)
 (add-hook 'dired-mode-hook #'alm/scale-text)
 
 (setq evil-split-window-below t
@@ -253,10 +273,6 @@
 
 (setq +workspaces-on-switch-project-behavior t)
 
-(setq fancy-splash-image "~/.config/gnu.png")
-(load-theme 'doom-challenger-deep t)
-(set-frame-parameter (selected-frame) 'alpha '(89 . 89))
-(add-to-list 'default-frame-alist '(alpha . (89 . 89)))
 (defun load-dark-mode ()
   "It loads my dark configuration."
         (interactive)
@@ -267,12 +283,32 @@
 (defun load-light-mode ()
   "It loads my light configuration."
         (interactive)
-        (load-theme 'doom-gruvbox-light t)
-        (set-frame-parameter (selected-frame) 'alpha '(89 . 89))
-        (add-to-list 'default-frame-alist '(alpha . (89 . 89))))
+        (load-theme 'spacemacs-light t))
+
+(defun alm/disable-transparency ()
+  (interactive)
+  "It disables transparency."
+  (set-frame-parameter (selected-frame) 'alpha '(100 . 100))
+)
+
+(defun alm/enable-transparency ()
+  (interactive)
+  "It enables transparency"
+  (interactive)
+  (set-frame-parameter (selected-frame) 'alpha '(89 . 75))
+)
 
 (map! :leader "t m d" 'load-dark-mode)
 (map! :leader "t m l" 'load-light-mode)
+(map! :leader "t t e" 'alm/enable-transparency)
+(map! :leader "t t d" 'alm/disable-transparency)
+
+(setq dashboard-startup-banner "~/dotfiles/gnu.png")
+(load-light-mode)
+
+(use-package dashboard
+  :config
+  (dashboard-setup-startup-hook))
 
 (use-package all-the-icons-ivy-rich
   :init (all-the-icons-ivy-rich-mode 1))
@@ -301,13 +337,13 @@
 
 (add-hook 'js2-mode-hook 'lsp)
 
-(setq inferior-lisp-program "/usr/bin/sbcl")
-(add-to-list 'load-path "/usr/share/emacs/site-lisp/slime/")
+;; (setq inferior-lisp-program "/usr/bin/sbcl")
+;; (add-to-list 'load-path "/usr/share/emacs/site-lisp/slime/")
 ;; (require 'slime)
 ;; (slime-setup)
 
-(require 'treemacs)
-(map! :leader "x" 'treemacs)
+;; (require 'treemacs)
+;; (map! :leader "x" 'treemacs)
 
 (defun alm/web-mode-hook ()
  (setq web-mode-code-indent-offset 2))
@@ -329,17 +365,22 @@
 (setq web-mode-code-indent-offset 2)
 (add-hook 'web-mode-hook 'alm/web-mode-hook)
 
-(require 'org-superstar)
-(add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))
-(setq org-directory "~/org/")
+(add-hook 'org-mode-hook 'org-fragtog-mode)
+(add-hook 'org-mode-hook 'variable-pitch-mode)
+(add-hook 'org-mode-hook 'org-bullets-mode)
+(add-hook 'org-mode-hook 'menu-bar--display-line-numbers-mode-none)
+(setq org-directory "~/Org/")
 (setq org-hide-block-startup t)
+(setq org-bullets-bullet-list '(" "))
+(setq org-startup-with-latex-preview t)
+(setq org-startup-with-inline-images t)
+(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
 (with-eval-after-load 'ox
   (require 'ox-hugo))
 (setq org-priority-faces '((65: foreground-color "#660000")
                            (66: foreground-color "#99FFFF")
                            (67: foreground-color "#009150")))
 (use-package! org-fancy-priorities
-  :ensure t
   :hook (org-mode . org-fancy-priorities-mode)
   :config
   (setq org-fancy-priorities-list '("⚡" "⬆" "⬇" "☕"))
@@ -350,7 +391,7 @@
 
 (defun alm/org-babel-tangle-config ()
   (when (string-equal (file-name-directory (buffer-file-name))
-                      (expand-file-name "~/.doom.d/"))
+                      (expand-file-name "~/dotfiles/doomemacs/.doom.d/"))
     ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
@@ -358,64 +399,39 @@
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook  #'alm/org-babel-tangle-config)))
 
 (use-package! org-roam
-  :init
-  (setq org-roam-v2-ack t)
-  (setq org-roam-db-autosync-mode t)
   :custom
-  (org-roam-directory "~/RoamNotes")
-  (org-roam-completion-everywhere t)
+  (org-roam-directory "/home/hrothgar32/Documents/Projects/braindump/RoamNotes")
+  (org-roam-dailies-directory "daily/")
   (org-roam-dailies-capture-templates
-   '(("d" "default" entry
-      "* What have I achived today\n\n%?\n\n* What are things which weren't so good\n\n* Short summary"
- :if-new  (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
-  (org-roam-capture-templates
-   '(("d" "default" plain
-      "%?"
-      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-      :unnarrowed t)
-     ("p" "project" plain
-      "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
-      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: Project\n#+category: ${title}")
-      :unnarrowed t)
-     ("t" "tech tool" plain
-        (file "~/org/Templates/TechToolTemplate.org")
-        :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: tool")
-        :unnarrowed t)
- ;;     ("b" "book notes" plain
- ;; "\n* Source\n\nAuthor: %^{Author}\nTitle: ${title}\nYear: %^{Year}\n\n* Summary\n\n%?"
- ;;    :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
- ;;    :unnarrowed t)
-     ))
-  (org-roam-complete-everywhere t)
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert))
-  :config
-  )
+        '(("d" "default" entry
+        "* %?"
+        :target (file+head "%<%Y-%m-%d>.org"
+                                "#+title: %<%Y-%m-%d>\n"))))
+  (org-roam-complete-everywhere t))
 
-(use-package! websocket
-    :after org-roam)
+(when (daemonp)
+        (add-to-list 'org-roam-buffer-postrender-functions (lambda () (org--latex-preview-region (point-min) (point-max))) t)
+        (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+        )
 
-(use-package! org-roam-ui
-    :after org-roam ;; or :after org
-;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-;;         a hookable mode anymore, you're advised to pick something yourself
-;;         if you don't care about startup time, use
-;;  :hook (after-init . org-roam-ui-mode)
-    :config
-    (setq org-roam-ui-sync-theme t
-          org-roam-ui-follow t
-          org-roam-ui-update-on-save t
-          org-roam-ui-open-on-start t))
+(defun benmezger/org-roam-export-all ()
+  "Re-exports all Org-roam files to Hugo markdown."
+  (interactive)
+  (dolist (f (org-roam-list-files))
+    (with-current-buffer (find-file f)
+        (org-hugo-export-wim-to-md)
+      )))
 
-     ;; (add-to-list 'display-buffer-alist
-     ;;              '("\\*org-roam\\*"
-     ;;                (display-buffer-in-side-window)
-     ;;                (side . right)
-     ;;                (slot . 0)
-     ;;                (window-width . 0.11)
-     ;;                (window-parameters . ((no-other-window . nil)
-     ;;                                      (no-delete-other-windows . nil)))))
+(require 'find-lisp)
+(defun alm/publish (file)
+  (with-current-buffer (find-file-noselect file)
+    (setq org-hugo-base-dir "/home/hrothgar32/Documents/Projects/braindump")
+    (let ((org-id-extra-files (find-lisp-find-files org-roam-directory "\.org$")))
+      (org-hugo-export-wim-to-md))))
+
+(use-package! deft
+  :custom
+  (deft-directory "~/RoamNotes"))
 
 (use-package yasnippet
   :config
@@ -514,40 +530,6 @@
 (require 'dap-lldb)
 (require 'dap-chrome)
 
-;; (use-package mu4e
-;;   ;; :load-path "/usr/share/emacs/site-lisp/mu4e/"
-;;   ;; :defer 20 ; Wait until 20 seconds after startup
-;;   :config
-
-;;   ;; This is set to 't' to avoid mail syncing issues when using mbsync
-;;   (setq mu4e-change-filenames-when-moving t)
-
-;;   ;; Refresh mail using isync every 10 minutes
-;;   (setq mu4e-update-interval (* 10 60))
-;;   (setq mu4e-get-mail-command "mbsync -a")
-;;   (setq mu4e-root-maildir "~/Mail")
-
-;;   (setq mu4e-drafts-folder "/[Gmail]/Drafts")
-;;   (setq mu4e-sent-folder   "/[Gmail]/Sent Mail")
-;;   (setq mu4e-refile-folder "/[Gmail]/All Mail")
-;;   (setq mu4e-trash-folder  "/[Gmail]/Trash")
-;;   (setq mu4e-maildir-shortcuts
-;;         '((:maildir "/Inbox"    :key ?i)
-;;         (:maildir "/[Gmail]/Sent Mail" :key ?s)
-;;         (:maildir "/[Gmail]/Trash"     :key ?t)
-;;         (:maildir "/[Gmail]/Drafts"    :key ?d)
-;;         (:maildir "/[Gmail]/All Mail"  :key ?a)))
-;;   (setq smtpmail-smtp-server "smtp.gmail.com"
-;;       smtpmail-smtp-service 465
-;;       smtpmail-stream-type 'ssl)
-;;   (setq message-send-mail-function 'smtpmail-send-it)
-;;   (setq mu4e-compose-signature "Almos Zediu")
-;; )
-
-(use-package org-mime
-  :ensure t)
-;; (map! :leader "o m" 'mu4e)
-
 ;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
 ;; (add-hook 'dired-mode-hook #'all-the-icons-dired-mode)
 
@@ -572,7 +554,6 @@
 	(progn (revert-buffer) ; otherwise just revert to re-show
 	       (set (make-local-variable 'dired-dotfiles-show-p) t)))))
 
-;; (setq org-agenda-files '("~/nextcloud/org-doksik/agenda.org"))
 (setq org-todo-keywords-for-agenda
       (quote ((sequence "TODO(t)" "NEXT(p)" "WAIT(w)" "CANCELLED" "DONE(r)")
               (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))))
@@ -584,30 +565,10 @@
 (setq org-capture-templates
       (quote
             (("t" "Personal todo" entry
-            (file+headline "~/org/todos.org" "Taskok")
+            (file+headline "~/Org/agenda.org" "Taskok")
             "* TODO %?\nSCHEDULED: <%(org-read-date)>")
             )
        ))
-
-(require 'seq)
-
-(defun alm/org-roam-get-project-notes ()
-  (mapcar
-   #'org-roam-node-file
-   (seq-filter
-    (lambda (node)
-        (member "Project" (org-roam-node-tags node))
-      )
-    (org-roam-node-list))))
-
-(defun alm/org-roam-refresh-agenda (&rest _)
-  (setq org-agenda-files (append (alm/org-roam-get-project-notes) '("~/org/todos.org"))
-  ))
-
-(setq org-directory "~/RoamFiles")
-(setq org-agenda-files (alm/org-roam-get-project-notes))
-
-(advice-add 'org-agenda :before #'alm/org-roam-refresh-agenda)
 
 (defun alm/build-and-deploy-blog()
   "Builds and deploys my blog."
@@ -629,60 +590,16 @@
   :bind
   ("C-x m" . mathpix-screenshot))
 
-(after! circe
-  (set-irc-server! "irc.libera.chat"
-    `(:tls t
-      :port 6697
-      :nick "Hrothgar32"
-      :sasl-username "Hrothgar32"
-      :sasl-password "agh54sdE561Q"
-      :channels ("#emacs"))))
+;; jaja
+(setq +latex-viewers '(zathura))
 
-(use-package reddit-post.el
-  )
-(setq reddit-post--oauth-refresh-token "50119615-Ye-KbYLsaAJjVbXbseRlcPYCaQCGXQ")
+(map! :map cdlatex-mode-map
+    :i "TAB" #'cdlatex-tab)
 
-(setq rmh-elfeed-org-files '("~/org/elfeed.org"))
-(use-package elfeed-org
-  :config
-  (elfeed-org))
+(add-hook 'LaTeX-mode-hook (lambda ()
+                             (add-hook 'after-save-hook (lambda () (TeX-command "LatexMk" #'TeX-master-file)) nil t)))
 
-(defun elfeed-v-mpv (url)
-  "Watch a video from URL in MPV"
-  (start-process-shell-command "hello" nil (format "mpv %s" url)))
-(defun elfeed-view-mpv (&optional use-generic-p)
-  "Youtube-feed link"
-  (interactive "P")
-  (let ((entries (elfeed-search-selected)))
-    (cl-loop for entry in entries
-     do (elfeed-untag entry 'unread)
-     when (elfeed-entry-link entry)
-     do (elfeed-v-mpv it))
-   (mapc #'elfeed-search-update-entry entries)
-   (unless (use-region-p) (forward-line))))
-(map! :leader "d v" 'elfeed-view-mpv)
-
-(use-package deft
-  :after org
-  :custom
-  (deft-recursive t)
-  (deft-use-filter-string-for-filename t)
-  (deft-default-extension "org")
-  (setq deft-use-filename-as-title t)
-  (deft-directory org-roam-directory))
-
-(use-package popper
-  :bind (("C-`"   . popper-toggle-latest)
-         ("M-`"   . popper-cycle)
-         ("C-M-`" . popper-toggle-type))
-  :init
-  (setq popper-reference-buffers
-        '("\\*Messages\\*"
-          "Output\\*$"
-          "\\*Async Shell Command\\*"
-          "\\*meghanada-task\\*"
-          help-mode
-          compilation-mode
-          vterm-mode))
-  (popper-mode +1))
-
+(map!
+  :map LaTeX-mode-map
+  :nv
+  "z a" 'outline-toggle-children)

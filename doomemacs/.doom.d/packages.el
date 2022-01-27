@@ -52,8 +52,6 @@
 (package! aio)
 (package! pyvenv)
 (package! org-mime)
-(package! exwm)
-(package! desktop-environment)
 (package! vterm)
 (package! multi-vterm)
 (package! all-the-icons-dired)
@@ -69,16 +67,18 @@
            :repo "jethrokuan/mathpix.el"
            :files ("*.el" "filters" "preprocessors")))
 (package! tree-mode)
-(package! reddit-post.el
-  :recipe (:host github
-           :repo "Hrothgar32/reddit-post.el"
-           :files ("*.el" "filters" "preprocessors")))
 (unpin! org-roam)
 (package! websocket)
 (package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
 (package! dired-narrow)
-(package! popper)
-
+(package! org-fragtog)
+(package! spacemacs-theme)
+(package! org-bullets)
+(package! org-pretty-table
+  :recipe (:host github
+           :repo "Fuco1/org-pretty-table"
+           :files ("*.el")))
+(package! dashboard)
 ;; Doom's packages are pinned to a specific commit and updated from release to
 ;; release. The `unpin!' macro allows you to unpin single packages...
 ;(unpin! pinned-package)

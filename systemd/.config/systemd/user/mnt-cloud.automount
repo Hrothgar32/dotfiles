@@ -1,0 +1,9 @@
+[Unit]
+Description=Mount my Nextcloud
+
+[Automount]
+Where=/home/hrothgar32/cloud
+TimeoutIdleSec=300
+
+[Install]
+WantedBy=remote-fs.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Mount my Nextcloud
+After=network-online.target
+Wants=network-online.target
+
+[Mount]
+What=https://nextcloud.almoszediu.com/remote.php/dav/files/hrothgar32/
+Where=/home/hrothgar32/cloud
+Options=uid=1000,file_mode=0664,dir_mode=2775,grpid
+Type=davfs
+TimeoutSec=15
+
+[Install]
+WantedBy=default.target

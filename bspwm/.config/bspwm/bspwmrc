@@ -33,6 +33,7 @@ bspc config presel_feedback_color "$color1"
 picom &
 ntfd &
 polybar main &
+playerctl daemon &
 wal -i ~/.lightdm_images/vhs_neon.png
 wmname LG3D
 /usr/lib/geoclue-2.0/demos/agent &

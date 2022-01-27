@@ -16,4 +16,4 @@ export EDITOR="emacsclient -c"
 export VISUAL="emacsclient -c"
 setxkbmap -layout us,hu,ro -variant ,basic -option grp:alt_shift_toggle
 # Created by `pipx` on 2021-08-22 21:46:16
-export PATH="$PATH:/home/hrothgar32/.local/bin:$HOME/.ghcup/bin"
+export PATH="$PATH:/home/hrothgar32/.local/bin"

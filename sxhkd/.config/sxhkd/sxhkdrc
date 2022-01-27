@@ -32,11 +32,15 @@ super + Escape
 
 # ranger
 super + r
-	alacritty -e "ranger"
+	rofi -show file-browser-extended
 
 #Emacsclient
 super + e
     emacsclient -c
+
+#Open agenda
+super + a
+    emacsclient -c -e "(org-agenda-list)"
 
 # brightness
 XF86MonBrightnessUp
