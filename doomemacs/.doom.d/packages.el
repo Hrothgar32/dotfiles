@@ -74,11 +74,10 @@
 (package! org-fragtog)
 (package! spacemacs-theme)
 (package! org-bullets)
-(package! org-pretty-table
-  :recipe (:host github
-           :repo "Fuco1/org-pretty-table"
-           :files ("*.el")))
 (package! dashboard)
+(package! org-roam-bibtex
+  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+(unpin! bibtex-completion helm-bibtex ivy-bibtex)
 ;; Doom's packages are pinned to a specific commit and updated from release to
 ;; release. The `unpin!' macro allows you to unpin single packages...
 ;(unpin! pinned-package)

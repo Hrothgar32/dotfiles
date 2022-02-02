@@ -304,7 +304,10 @@
 (map! :leader "t t d" 'alm/disable-transparency)
 
 (setq dashboard-startup-banner "~/dotfiles/gnu.png")
-(load-light-mode)
+(load-dark-mode)
+(set-face-attribute 'variable-pitch nil :font "EtBembo")
+(set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
 
 (use-package dashboard
   :config
@@ -342,8 +345,8 @@
 ;; (require 'slime)
 ;; (slime-setup)
 
-;; (require 'treemacs)
-;; (map! :leader "x" 'treemacs)
+(require 'treemacs)
+(map! :leader "x" 'treemacs)
 
 (defun alm/web-mode-hook ()
  (setq web-mode-code-indent-offset 2))
@@ -402,6 +405,15 @@
   :custom
   (org-roam-directory "/home/hrothgar32/Documents/Projects/braindump/RoamNotes")
   (org-roam-dailies-directory "daily/")
+  (org-roam-capture-templates
+    '(("d" "default" plain "%?" :target
+    (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+    :unnarrowed t)
+      ("r" "bibliography reference" plain
+         (file "~/Documents/Projects/braindump/RoamNotes/templates/noter.org")
+         :target
+         (file+head "references/${citekey}.org" "#+title: ${title}\n")))
+   )
   (org-roam-dailies-capture-templates
         '(("d" "default" entry
         "* %?"
@@ -428,6 +440,42 @@
     (setq org-hugo-base-dir "/home/hrothgar32/Documents/Projects/braindump")
     (let ((org-id-extra-files (find-lisp-find-files org-roam-directory "\.org$")))
       (org-hugo-export-wim-to-md))))
+
+(defun org-roam-extract-subtree ()
+  "Convert current subtree at point to a node, and extract it into a new file."
+  (interactive)
+  (save-excursion
+    (org-back-to-heading-or-point-min t)
+    (when (bobp) (user-error "Already a top-level node"))
+    (org-id-get-create)
+    (save-buffer)
+    (org-roam-db-update-file)
+    (let* ((template-info nil)
+           (node (org-roam-node-at-point))
+           (template (org-roam-format-template
+                      (string-trim (org-capture-fill-template org-roam-extract-new-file-path))
+                      (lambda (key default-val)
+                        (let ((fn (intern key))
+                              (node-fn (intern (concat "org-roam-node-" key)))
+                              (ksym (intern (concat ":" key))))
+                          (cond
+                           ((fboundp fn)
+                            (funcall fn node))
+                           ((fboundp node-fn)
+                            (funcall node-fn node))
+                           (t (let ((r (completing-read (format "%s: " key) nil nil nil default-val)))
+                                (plist-put template-info ksym r)
+                                r)))))))
+           (file-path (read-file-name "Extract node to: " org-roam-directory template nil template)))
+      (when (file-exists-p file-path)
+        (user-error "%s exists. Aborting" file-path))
+      (org-cut-subtree)
+      (save-buffer)
+      (with-current-buffer (find-file-noselect file-path)
+        (org-paste-subtree)
+        (save-buffer)
+        (org-roam-promote-entire-buffer)
+        (save-buffer)))))
 
 (use-package! deft
   :custom
@@ -527,8 +575,32 @@
 (map! :leader :desc "Run CMake project in Debug mode." "m Z" #'run-cmake-project-debug)
 (map! :leader :desc "Run CMake project in Release mode." "m R" #'run-cmake-project-release)
 
-(require 'dap-lldb)
-(require 'dap-chrome)
+(setq lsp-java-autobuild-enabled nil)
+(defun lsp-java--completing-read-multiple (message items initial-selection)
+    (if (functionp 'ivy-read)
+        (let (result)
+          (ivy-read message (mapcar #'car items)
+                    :action (lambda (c) (setq result (list (cdr (assoc c items)))))
+                    :multi-action
+                    (lambda (canditates)
+                      (setq result (mapcar (lambda (c) (cdr (assoc c items))) canditates))))
+          result)
+      (let ((deps initial-selection) dep)
+        (while (setq dep (cl-rest (lsp--completing-read
+                                   (if deps
+                                       (format "%s (selected %s): " message (length deps))
+                                     (concat message ": "))
+                                   items
+                                   (-lambda ((name . id))
+                                     (if (-contains? deps id)
+                                         (concat name " ✓")
+                                       name)))))
+          (if (-contains? deps dep)
+              (setq deps (remove dep deps))
+            (cl-pushnew dep deps)))
+        deps)))
+(map! :map ivy-mode-map "C-p" 'ivy-mark)
+(map! :map ivy-mode-map "C-u p" 'ivy-unmark)
 
 ;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
 ;; (add-hook 'dired-mode-hook #'all-the-icons-dired-mode)
@@ -561,6 +633,7 @@
 (setq org-todo-keywords
       (quote ((sequence "TODO(t)" "NEXT(p)" "WAIT(w)" "CANCELLED" "DONE(r)")
               (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))))
+(setq org-agenda-files '("/home/hrothgar32/Org/agenda.org"))
 
 (setq org-capture-templates
       (quote
@@ -603,3 +676,17 @@
   :map LaTeX-mode-map
   :nv
   "z a" 'outline-toggle-children)
+
+(setq! bibtex-completion-bibliography '("/home/hrothgar32/Documents/Projects/braindump/RoamNotes/testLib.bib"))
+(setq! org-cite-global-bibliography '("/home/hrothgar32/Documents/Projects/braindump/RoamNotes/testLib.bib"))
+(setq org-cite-csl-styles-dir "~/Zotero/styles")
+(use-package! org-roam-bibtex
+  :after org-roam
+  :custom
+  (orb-preformat-keywords
+      '("citekey" "title" "url" "author-or-editor" "keywords" "file")
+      orb-process-file-keyword t
+      orb-attached-file-extensions '("pdf"))
+  (orb-roam-ref-format 'org-cite)
+  :config
+  (org-roam-bibtex-mode))

@@ -85,11 +85,12 @@
 
        :tools
        ;;ansible
+       biblio
        ;;debugger          ; FIXME stepping through code, to help you add bugs
        ;;direnv
        docker
        editorconfig      ; let someone else argue about tabs vs spaces
-       ;;ein               ; tame Jupyter notebooks with emacs
+       ein               ; tame Jupyter notebooks with emacs
        (eval +overlay)     ; run code, run (also, repls)
        ;;gist              ; interacting with github gists
        lookup              ; navigate your code and its documentation
@@ -120,7 +121,7 @@
        data              ; config/data formats
        ;;(dart +flutter)   ; paint ui and not much else
        ;;elixir            ; erlang done right
-       ;;elm               ; care for a cup of TEA?
+       (elm +lsp)               ; care for a cup of TEA?
        emacs-lisp        ; drown in parentheses
        ;;erlang            ; an elegant language for a more civilized age
        ;;ess               ; emacs speaks statistics
