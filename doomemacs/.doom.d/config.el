@@ -214,9 +214,6 @@
 (add-to-list 'org-structure-template-alist '("cpp" . "src C++"))
 (add-to-list 'org-structure-template-alist '("js" . "src js"))
 
-(setq user-full-name  "Almos-Agoston Zediu"
-      user-mail-address "zold.almos@gmail.com")
-
 (defun alm/set-dictionary-to-hungarian ()
   (interactive)
   (flyspell-mode-off)
@@ -232,6 +229,8 @@
   (flyspell-mode))
 
 (map! :leader "d e" 'alm/set-dictionary-to-english)
+
+(setq user-full-name "Álmos-Ágoston Zediu")
 
 (map! "C-i" 'evil-jump-forward)
 (setq-default tab-width 4)
@@ -277,7 +276,6 @@
   "It loads my dark configuration."
         (interactive)
         (load-theme 'doom-challenger-deep t)
-        (set-frame-parameter (selected-frame) 'alpha '(89 . 75))
         (add-to-list 'default-frame-alist '(alpha . (89 . 75))))
 
 (defun load-light-mode ()
@@ -305,11 +303,14 @@
 
 (setq dashboard-startup-banner "~/dotfiles/gnu.png")
 (load-dark-mode)
-(set-face-attribute 'variable-pitch nil :font "EtBembo")
-(set-face-attribute 'org-block nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
 
 (use-package dashboard
+  :custom
+  (dashboard-items '((recents . 4)
+                     (projects . 4)
+                     (agenda . 4)))
+  (dashboard-set-heading-icons t)
+  (dashboard-set-file-icons t)
   :config
   (dashboard-setup-startup-hook))
 
@@ -602,6 +603,8 @@
 (map! :map ivy-mode-map "C-p" 'ivy-mark)
 (map! :map ivy-mode-map "C-u p" 'ivy-unmark)
 
+(require 'dap-cpptools)
+
 ;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
 ;; (add-hook 'dired-mode-hook #'all-the-icons-dired-mode)
 
@@ -690,3 +693,43 @@
   (orb-roam-ref-format 'org-cite)
   :config
   (org-roam-bibtex-mode))
+
+(set-email-account! "gmail"
+  '((mu4e-sent-folder       . "/gmail/[Gmail]/Sent Mail")
+    (mu4e-drafts-folder     . "/gmail/[Gmail]/Drafts")
+    (mu4e-trash-folder      . "/gmail/[Gmail]/Trash")
+    (smtpmail-smtp-user     . "zold.almos@gmail.com")
+    (user-mail-address     .  "zold.almos@gmail.com")
+    (mu4e-compose-signature . "---\n Almos Zediu")
+    )
+  t)
+(set-email-account! "sasmail"
+  '((mu4e-sent-folder       . "/gmail2/[Gmail]/Sent Mail")
+    (mu4e-drafts-folder     . "/gmail2/[Gmail]/Drafts")
+    (mu4e-trash-folder      . "/gmail2/[Gmail]/Trash")
+    (smtpmail-smtp-user     . "sasokcsapat@gmail.com")
+    (user-mail-address     .  "sasokcsapat@gmail.com")
+    (mu4e-compose-signature . "---\n Almos Zediu")
+    )
+  t)
+(set-email-account! "ubboutlook"
+  '((mu4e-sent-folder       . "/ubboutlook/Sent Items")
+    (mu4e-drafts-folder     . "/ubboutlook/Drafts")
+    (mu4e-trash-folder      . "/ubboutlook/Deleted Items")
+    (smtpmail-smtp-user     . "almos.zediu@stud.ubbcluj.ro")
+    (user-mail-address      . "almos.zediu@stud.ubbcluj.ro")
+    (mu4e-compose-signature . "---\n Almos Zediu")
+    )
+  t)
+
+;; (setq +mu4e-gmail-accounts '(("zold.almos@gmail.com" . "zold.almos")))
+
+(setq mu4e-context-policy 'ask-if-none
+      mu4e-compose-context-policy 'always-ask)
+
+(after! mu4e
+  (setq sendmail-program (executable-find "msmtp")
+        send-mail-function #'smtpmail-send-it
+        message-sendmail-f-is-evil t
+        message-sendmail-extra-arguments '("--read-envelope-from")
+        message-send-mail-function #'message-send-mail-with-sendmail))

@@ -9,6 +9,10 @@ super + Return
 super + shift + p
    rofi-pass
 
+# htop
+ctrl + shift + Escape
+	alacritty -e htop
+
 # program launcher
 super + d
 	rofi -show drun
@@ -41,6 +45,9 @@ super + e
 #Open agenda
 super + a
     emacsclient -c -e "(org-agenda-list)"
+#Open email client
+super + ctrl + m
+    emacsclient -c -e "(=mu4e)"
 
 # brightness
 XF86MonBrightnessUp
