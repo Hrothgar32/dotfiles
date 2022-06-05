@@ -78,6 +78,10 @@
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 (unpin! bibtex-completion helm-bibtex ivy-bibtex)
+(package! math-preview
+  :recipe (:host gitlab
+           :repo "matsievskiysv/math-preview"
+           :files ("*.el" "filters" "preprocessors")))
 ;; Doom's packages are pinned to a specific commit and updated from release to
 ;; release. The `unpin!' macro allows you to unpin single packages...
 ;(unpin! pinned-package)

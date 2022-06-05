@@ -75,7 +75,7 @@ offset-x = 0%
 offset-y = 0%
 
 ; Background ARGB color (e.g. #f00, #ff992a, #ddff1023)
-background = #DB07081A
+background = ${color.black}
 ; Foreground ARGB color (e.g. #f00, #ff992a, #ddff1023)
 foreground = ${color.fg}
 

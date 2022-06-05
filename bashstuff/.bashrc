@@ -11,6 +11,7 @@ force_color_prompt=yes
 alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles --work-tree=$HOME'
 alias egyetemdown='rclone sync -P -L nextcloud:Egyetem ~/Documents/Egyetem'
 alias egyetemup='rclone sync -P -L ~/Documents/Egyetem nextcloud:Egyetem'
+alias restartemacs='systemctl --user restart emacs'
 export ALTERNATE_EDITOR="emacsclient -c"
 export EDITOR="emacsclient -c"
 export VISUAL="emacsclient -c"

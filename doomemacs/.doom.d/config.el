@@ -91,6 +91,7 @@
 (map! :leader "d w" 'alm/choose-wallpaper)
 (map! :leader "d r" 'alm/set-random-wallpaper)
 (map! :leader "r r" 'alm/reboot)
+(map! :nv "g z e" 'mc/mark-more-like-this-extended)
 
 ;; (use-package exwm
 ;;   :init
@@ -244,6 +245,11 @@
 
 (require 'bind-key)
 (bind-key* "s-l" 'windmove-right)
+(use-package! counsel
+  :defer t
+  :init
+  (define-key!
+    [remap projectile-compile-project] #'projectile-compile-project))
 
 (global-hl-line-mode)
 
@@ -275,7 +281,7 @@
 (defun load-dark-mode ()
   "It loads my dark configuration."
         (interactive)
-        (load-theme 'doom-challenger-deep t)
+        (load-theme 'doom-gruvbox t)
         (add-to-list 'default-frame-alist '(alpha . (89 . 75))))
 
 (defun load-light-mode ()
@@ -320,26 +326,67 @@
 (use-package ivy-rich
   :init (ivy-rich-mode 1))
 
-(defun terminal ()
-  "Initialize or toggle terminal emulator
- If the terminal window is visible hide it.
- If a terminal buffer exists, but is not visible, show it.
- If no terminal buffer exists for the current frame create and show it."
-  (interactive)
-  (multi-vterm-dedicated-toggle)
-  (evil-window-decrease-height 18))
-(map! :leader "l" #'terminal)
+;; (set-popup-rule! "^/*vterminal*/*$")
+;; (defun terminal ()
+;; "Initialize or toggle terminal emulator
+;; If the terminal window is visible hide it.
+;; If a terminal buffer exists, but is not visible, show it.
+;; If no terminal buffer exists for the current frame create and show it."
+;; (interactive)
+;; (multi-vterm-dedicated-toggle)
+;; (evil-window-decrease-height 18))
+(map! :leader "l" #'toggle-vterm)
+(defun open-vterm()
+  (split-window
+   (selected-window)
+   50)
+  (evil-window-down 10)
+  (multi-vterm-next)
+  (setq vterm-popup-exist t))
 
-(map! "s-<return>" 'multi-vterm )
+(defun close-vterm ()
+    (ignore-errors (evil-window-down 10))
+    (ignore-errors (delete-window))
+    (setq vterm-popup-exist nil))
+
+(defun toggle-vterm ()
+    (interactive)
+    (if vterm-popup-exist
+        (close-vterm)
+      (open-vterm)))
+
+(map! :leader "j" #'multi-vterm-next)
+(map! :leader "k" #'multi-vterm-prev)
 
 
+
+(use-package dap-mode
+  :custom
+  (dap-auto-configure-features '(locals controls))
+  (dap-auto-show-output t))
+
+(map! :leader "c h" 'dap-hydra)
 
 (use-package! python-black
   :after python)
 (add-hook 'python-mode-hook 'python-black-on-save-mode)
 (add-hook 'python-mode-hook #'lsp) ; or lsp-deferred
+(setq python-shell-interpreter "/usr/bin/python")
+(require 'dap-python)
+(setq dap-python-debugger 'debugpy)
 
 (add-hook 'js2-mode-hook 'lsp)
+(require 'dap-node)
+
+(use-package! cider
+  :after clojure-mode
+  :config
+  (set-lookup-handlers! 'cider-mode nil))
+
+(use-package! clj-refactor
+  :after clojure-mode
+  :config
+  (set-lookup-handlers! 'clj-refactor-mode nil))
 
 ;; (setq inferior-lisp-program "/usr/bin/sbcl")
 ;; (add-to-list 'load-path "/usr/share/emacs/site-lisp/slime/")
@@ -373,6 +420,8 @@
 (add-hook 'org-mode-hook 'variable-pitch-mode)
 (add-hook 'org-mode-hook 'org-bullets-mode)
 (add-hook 'org-mode-hook 'menu-bar--display-line-numbers-mode-none)
+(add-hook 'org-mode-hook 'writeroom-mode)
+
 (setq org-directory "~/Org/")
 (setq org-hide-block-startup t)
 (setq org-bullets-bullet-list '(" "))
@@ -405,7 +454,7 @@
 (use-package! org-roam
   :custom
   (org-roam-directory "/home/hrothgar32/Documents/Projects/braindump/RoamNotes")
-  (org-roam-dailies-directory "daily/")
+  (org-roam-dailies-directory "./daily")
   (org-roam-capture-templates
     '(("d" "default" plain "%?" :target
     (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
@@ -478,9 +527,23 @@
         (org-roam-promote-entire-buffer)
         (save-buffer)))))
 
+(defun capture-todo-done (arg)
+  "Advice func for making an org-roam diary entry when marking a todo as done.
+ARG is ignored, as it only has a value when org-todo is run non-interactively."
+  (when (equal "DONE" (org-get-todo-state))
+    (let ((heading (org-get-heading t t t nil)))
+      (org-roam-dailies-capture-today)
+      (insert heading)
+      (insert "\n")
+      ;; Remove this if you want to be able to edit the entry.
+      (org-capture-finalize)
+    )))
+
+(advice-add 'org-todo :after #'capture-todo-done)
+
 (use-package! deft
   :custom
-  (deft-directory "~/RoamNotes"))
+  (deft-directory "~/Documents/Projects/braindump/RoamNotes"))
 
 (use-package yasnippet
   :config
@@ -570,11 +633,11 @@
     (run-cmake-project "Release" args))
   )
 
-(map! :leader :desc "Create a CMake project" "m p" #'create-cmake-project)
-(map! :leader :desc "Build CMake project in Release mode." "m r" #'build-cmake-project-release)
-(map! :leader :desc "Build CMake project in Debug mode." "m z" #'build-cmake-project-debug)
-(map! :leader :desc "Run CMake project in Debug mode." "m Z" #'run-cmake-project-debug)
-(map! :leader :desc "Run CMake project in Release mode." "m R" #'run-cmake-project-release)
+;; (map! :leader :desc "Create a CMake project" "m p" #'create-cmake-project)
+;; (map! :leader :desc "Build CMake project in Release mode." "m r" #'build-cmake-project-release)
+;; (map! :leader :desc "Build CMake project in Debug mode." "m z" #'build-cmake-project-debug)
+;; (map! :leader :desc "Run CMake project in Debug mode." "m Z" #'run-cmake-project-debug)
+;; (map! :leader :desc "Run CMake project in Release mode." "m R" #'run-cmake-project-release)
 
 (setq lsp-java-autobuild-enabled nil)
 (defun lsp-java--completing-read-multiple (message items initial-selection)
@@ -636,14 +699,22 @@
 (setq org-todo-keywords
       (quote ((sequence "TODO(t)" "NEXT(p)" "WAIT(w)" "CANCELLED" "DONE(r)")
               (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))))
-(setq org-agenda-files '("/home/hrothgar32/Org/agenda.org"))
+(setq org-agenda-files '("/home/hrothgar32/Org/agenda" ))
 
 (setq org-capture-templates
       (quote
             (("t" "Personal todo" entry
-            (file+headline "~/Org/agenda.org" "Taskok")
+            (file "~/Org/agenda/personal.org")
             "* TODO %?\nSCHEDULED: <%(org-read-date)>")
-            )
+             ("a" "Assignment" entry
+            (file+headline "~/Org/agenda/egyetem.org" "Assignments")
+            "* TODO [#B] %? :@egyetem:@assignment: \nDEADLINE: <%(org-read-date)>")
+            ("e" "Exam" entry
+            (file+headline "~/Org/agenda/egyetem.org" "Vizsgák")
+            "* TODO [#A] %? :@egyetem:@vizsga: \nSCHEDULED: <%(org-read-date)>")
+            ("i" "inbox" entry
+            (file "~/Org/agenda/inbox.org")
+            "* TODO %?\nSCHEDULED: <%(org-read-date)>"))
        ))
 
 (defun alm/build-and-deploy-blog()

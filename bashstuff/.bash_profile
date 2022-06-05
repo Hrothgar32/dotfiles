@@ -6,3 +6,5 @@ export PATH="$PATH:$HOME/.cargo/bin:$HOME/.local/bin:$HOME/.emacs.d/bin:$HOME/.c
 [[ -f ~/.bashrc ]] && . ~/.bashrc
 # Created by `pipx` on 2021-08-22 21:46:16
 export PATH="$PATH:/home/hrothgar32/.local/bin"
+# Add .NET Core SDK tools
+export PATH="$PATH:/home/hrothgar32/.dotnet/tools"

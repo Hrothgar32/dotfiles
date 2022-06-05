@@ -144,6 +144,10 @@ configuration {
       directories-first: true;
       sorting-method:    "name";
   }
+  window {
+    width: 100%;
+  }
 }
 
-@theme "DarkBlueB"
+//@theme "DarkBlueB"
+@theme "custom-gruvbox-dark.rasi"
