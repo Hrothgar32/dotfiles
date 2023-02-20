@@ -4,208 +4,118 @@
 
 (setq lsp-log-io nil)
 
-(defun alm/exwm-update-class ()
-  (exwm-workspace-rename-buffer exwm-class-name))
+;; (defun alm/exwm-update-class ()
+;;   (exwm-workspace-rename-buffer exwm-class-name))
 
-(defun alm/everywhere()
-  (interactive)
-  (start-process-shell-command
-   "bash" nil "doom nowhere"))
+;; (defun alm/everywhere()
+;;   (interactive)
+;;   (start-process-shell-command
+;;    "bash" nil "doom nowhere"))
 
-(defun alm/connect-to-nextcloud()
-  (start-process-shell-command
-   "bash" nil "mount ~/nextcloud 1>/dev/null"))
+;; (defun alm/connect-to-nextcloud()
+;;   (start-process-shell-command
+;;    "bash" nil "mount ~/nextcloud 1>/dev/null"))
 
-(defun alm/reboot()
-  (interactive)
-  (start-process-shell-command
-   "bash" nil "reboot"))
+;; (defun alm/reboot()
+;;   (interactive)
+;;   (start-process-shell-command
+;;    "bash" nil "reboot"))
 
-(defun alm/kill-and-close ()
-  (interactive)
-  "Kill a buffer, and if possible, close it's window."
-   (kill-current-buffer)
-   (delete-window))
+;; (defun alm/kill-and-close ()
+;;   (interactive)
+;;   "Kill a buffer, and if possible, close it's window."
+;;    (kill-current-buffer)
+;;    (delete-window))
 
-(defun alm/exwm-update-title ()
-  (pcase exwm-class-name
-    ("Brave-browser" (exwm-workspace-rename-buffer (format "Brave: %s" exwm-title)))))
+;; (defun alm/exwm-update-title ()
+;;   (pcase exwm-class-name
+;;     ("Brave-browser" (exwm-workspace-rename-buffer (format "Brave: %s" exwm-title)))))
 
-  ;; When window title updates, use it to set the buffer name
-  (add-hook 'exwm-update-title-hook #'alm/exwm-update-title)
+;;   ;; When window title updates, use it to set the buffer name
+;;   (add-hook 'exwm-update-title-hook #'alm/exwm-update-title)
 
-(defun alm/set-chosen-wallpaper(wallpaper-file)
-  (start-process-shell-command
-   "feh" nil (concat "feh --bg-scale " wallpaper-file)))
+;; (defun alm/set-chosen-wallpaper(wallpaper-file)
+;;   (start-process-shell-command
+;;    "feh" nil (concat "feh --bg-scale " wallpaper-file)))
 
-(defun alm/set-random-wallpaper()
-  (interactive)
-  (let* ((pictures (directory-files "~/.lightdm_images" t directory-files-no-dot-files-regexp)))
-   (alm/set-chosen-wallpaper (nth (random (length pictures)) pictures))))
+;; (defun alm/set-random-wallpaper()
+;;   (interactive)
+;;   (let* ((pictures (directory-files "~/.lightdm_images" t directory-files-no-dot-files-regexp)))
+;;    (alm/set-chosen-wallpaper (nth (random (length pictures)) pictures))))
 
-(defun alm/choose-wallpaper(wallpaper-file)
-  "Choose a wallpaper."
-  (interactive (list(read-file-name "Select wallpaper :" "~/.lightdm_images/")))
-  (alm/set-chosen-wallpaper wallpaper-file))
+;; (defun alm/choose-wallpaper(wallpaper-file)
+;;   "Choose a wallpaper."
+;;   (interactive (list(read-file-name "Select wallpaper :" "~/.lightdm_images/")))
+;;   (alm/set-chosen-wallpaper wallpaper-file))
 
-(defun alm/set-wallpaper()
-  (interactive)
-  (start-process-shell-command
-   "feh" nil "feh --bg-scale /home/hrothgar32/.lightdm_images/futuristic.jpg"))
+;; (defun alm/set-wallpaper()
+;;   (interactive)
+;;   (start-process-shell-command
+;;    "feh" nil "feh --bg-scale /home/hrothgar32/.lightdm_images/futuristic.jpg"))
 
-(defun alm/lock-screen()
-  (interactive)
-  (start-process-shell-command
-  "i3lock-fancy" "*i3lock*" "i3lock-fancy -n"))
+;; (defun alm/lock-screen()
+;;   (interactive)
+;;   (start-process-shell-command
+;;   "i3lock-fancy" "*i3lock*" "i3lock-fancy -n"))
 
-(defun alm/spotify-toggle()
-  (interactive)
-  (start-process-shell-command
-   "playerctl" nil "playerctl --player=spotify play-pause"))
+;; (defun alm/spotify-toggle()
+;;   (interactive)
+;;   (start-process-shell-command
+;;    "playerctl" nil "playerctl --player=spotify play-pause"))
 
-(defun alm/spotify-previous()
-  (interactive)
-  (start-process-shell-command
-   "playerctl" nil "playerctl --player=spotify previous"))
+;; (defun alm/spotify-previous()
+;;   (interactive)
+;;   (start-process-shell-command
+;;    "playerctl" nil "playerctl --player=spotify previous"))
 
-(defun alm/spotify-next()
-  (interactive)
-  (start-process-shell-command
-   "playerctl" nil "playerctl --player=spotify next"))
+;; (defun alm/spotify-next()
+;;   (interactive)
+;;   (start-process-shell-command
+;;    "playerctl" nil "playerctl --player=spotify next"))
 
-(defun alm/exwm-init-hook ()
-  (alm/start-panel)
-  (alm/set-chosen-wallpaper "~/.lightdm_images/vhs_neon.png"))
+;; (defun alm/exwm-init-hook ()
+;;   (alm/start-panel)
+;;   (alm/set-chosen-wallpaper "~/.lightdm_images/vhs_neon.png"))
 
-(add-hook 'exwm-update-class-hook #'alm/exwm-update-class)
-(add-hook 'exwm-init-hook #'alm/exwm-init-hook)
+;; (add-hook 'exwm-update-class-hook #'alm/exwm-update-class)
+;; (add-hook 'exwm-init-hook #'alm/exwm-init-hook)
 
-(defun alm/make-screenshot(picture-dir picture-name)
-  (interactive (list (read-directory-name "Select image directory: ")
-                     (read-string "Image name: ")))
-  (let* ((image-absolute-path (concat picture-dir picture-name))
-         (shell-string (concat "scrot -s -e 'mv $f " image-absolute-path "'")))
-    (start-process-shell-command
-     "scrot" nil shell-string)))
+;; (defun alm/make-screenshot(picture-dir picture-name)
+;;   (interactive (list (read-directory-name "Select image directory: ")
+;;                      (read-string "Image name: ")))
+;;   (let* ((image-absolute-path (concat picture-dir picture-name))
+;;          (shell-string (concat "scrot -s -e 'mv $f " image-absolute-path "'")))
+;;     (start-process-shell-command
+;;      "scrot" nil shell-string)))
 
-(map! :leader "d w" 'alm/choose-wallpaper)
-(map! :leader "d r" 'alm/set-random-wallpaper)
-(map! :leader "r r" 'alm/reboot)
+;; (map! :leader "d w" 'alm/choose-wallpaper)
+;; (map! :leader "d r" 'alm/set-random-wallpaper)
+;; (map! :leader "r r" 'alm/reboot)
 (map! :nv "g z e" 'mc/mark-more-like-this-extended)
-
-;; (use-package exwm
-;;   :init
-;;   (setq exwm-workspace-number 5
-;;         mouse-autoselect-windiw nil
-;;         focus-follows-mouse t
-;;         exwm-workspace-warp-cursor t)
-;;   :config
-;;   ;; Key resolution
-;;   (require 'exwm-randr)
-;;   (exwm-randr-enable)
-;;   (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal")
-;;   ;; (require 'exwm-systemtray)
-;;   ;; (setq exwm-systemtray-height 32)
-;;   ;; (exwm-systemtray-enable)
-;;   ;; Automatically send the mouse cursor to the selected workspace's display
-;;   (setq exwm-workspace-warp-cursor t)
-
-;; ;; These keys should always pass through to Emacs
-;; (setq exwm-input-prefix-keys
-;;     '(?\C-x
-;;       ?\C-u
-;;       ?\C-h
-;;       ?\M-x
-;;       ?\M-`
-;;       ?\M-&
-;;       ?\M-:
-;;       ?\C-\M-j  ;; Buffer list
-;;       ?\C-\
-;;       ))
-;; ;; Adding Space to the exwm-input-prefix
-;; (push ?\x20 exwm-input-prefix-keys)
-
-
-;;   (map! :map exwm-mode-map
-;; "C-q" 'exwm-input-send-next-key)
-
-;;   (setq exwm-input-global-keys
-;;         `(
-;;         ;; Reset to line-mode (C-c C-k switches to char-mode via exwm-input-release-keyboard)
-;;         ([?\s-r] . exwm-reset)
-;;         ([?\s-f] . exwm-layout-toggle-fullscreen)
-
-;;         ;; Move between windows
-;;         ([?\s-h] . windmove-left)
-;;         ([?\s-l] . windmove-right)
-;;         ([?\s-k] . windmove-up)
-;;         ([?\s-j] . windmove-down)
-;;         ([?\s-S] . alm/spotify-toggle)
-;;         ([?\s-A] . alm/spotify-previous)
-;;         ([?\s-D] . alm/spotify-next)
-;;         ([?\s-Q] . alm/kill-and-close)
-;;         ([?\s-X] . alm/lock-screen)
-;;         ([?\s-C] . alm/make-screenshot)
-;;         ([?\s-e] . alm/everywhere)
-
-
-;;         ;; Launching applications
-;;         ;; ([?\s-d] . (lambda (command)
-;;         ;;         (interactive (list (read-shell-command "$ ")))
-;;         ;;         (start-process-shell-command command nil command)))
-
-;;         ;; Switch workspace
-;;         ([?\s-w] . exwm-workspace-switch)
-
-;;         ;; 's-N': Switch to certain workspace with Super (Win) plus a number key (0 - 9)
-;;         ,@(mapcar (lambda (i)
-;;                 `(,(kbd (format "s-%d" i)) .
-;;                         (lambda ()
-;;                         (interactive)
-;;                         (exwm-workspace-switch-create ,i))))
-;;                 (number-sequence 0 9))))
-;;   (exwm-input-set-key (kbd "s-d") 'counsel-linux-app)
-;;   (alm/connect-to-nextcloud))
 
       (defun alm/rg-in-dir(initial-dir)
         (interactive (read-directory-name "Select directory for search:"))
         (counsel-rg "" initial-dir))
     (map! :leader "]" 'alm/rg-in-dir)
 
-(defun alm/kill-panel()
+(defun doom/ediff-init-and-example ()
+  "ediff the current `init.el' with the example in doom-emacs-dir"
   (interactive)
-  (when alm/polybar-process
-    (ignore-errors
-      (kill-process alm/polybar-process)))
-  (setq alm/polybar-process nil)
+  (ediff-files (concat doom-private-dir "init.el")
+               (concat doom-emacs-dir "templates/init.example.el")))
+
+(define-key! help-map
+  "di"   #'doom/ediff-init-and-example
   )
 
-(defun alm/start-panel()
-  (interactive)
-  (start-process-shell-command "python" nil "python3 ~/.config/set_desktop_name.py")
-  (setq alm/polybar-process (start-process-shell-command "poly" nil "polybar main")))
-
-;; (defun geci ()
-;;   (pcase exwm--selected-input-mode
-;;     ('line-mode' )
-;;     ('char-mode' )
-;;     ))
-
-;; (defun alm/send-polybar-mode-hook ()
-;;   (setq szam (geci))
-;;   (start-process-shell-command "polybar-msg" nil
-;;                                "polybar-msg hook exwm-mode 1"))
-
-;; (add-hook 'exwm-input-input-mode-change-hook #'alm/send-polybar-mode-hook)
-
-(use-package desktop-environment
-  :after exwm
-  :config (desktop-environment-mode)
-  :custom
-  (desktop-environment-brightness-small-increment "2%+")
-  (desktop-environment-brightness-small-decrement "2%-")
-  (desktop-environment-brightness-normal-increment "5%+")
-  (desktop-environment-brightness-normal-decrement "5%-"))
+;; (use-package desktop-environment
+;;   :after exwm
+;;   :config (desktop-environment-mode)
+;;   :custom
+;;   (desktop-environment-brightness-small-increment "2%+")
+;;   (desktop-environment-brightness-small-decrement "2%-")
+;;   (desktop-environment-brightness-normal-increment "5%+")
+;;   (desktop-environment-brightness-normal-decrement "5%-"))
 
 (require 'org-tempo)
 
@@ -281,8 +191,7 @@
 (defun load-dark-mode ()
   "It loads my dark configuration."
         (interactive)
-        (load-theme 'doom-gruvbox t)
-        (add-to-list 'default-frame-alist '(alpha . (89 . 75))))
+        (load-theme 'doom-gruvbox t))
 
 (defun load-light-mode ()
   "It loads my light configuration."
@@ -310,23 +219,7 @@
 (setq dashboard-startup-banner "~/dotfiles/gnu.png")
 (load-dark-mode)
 
-(use-package dashboard
-  :custom
-  (dashboard-items '((recents . 4)
-                     (projects . 4)
-                     (agenda . 4)))
-  (dashboard-set-heading-icons t)
-  (dashboard-set-file-icons t)
-  :config
-  (dashboard-setup-startup-hook))
-
-(use-package all-the-icons-ivy-rich
-  :init (all-the-icons-ivy-rich-mode 1))
-
-(use-package ivy-rich
-  :init (ivy-rich-mode 1))
-
-;; (set-popup-rule! "^/*vterminal*/*$")
+(set-popup-rule! "^/*vterminal*/*$")
 ;; (defun terminal ()
 ;; "Initialize or toggle terminal emulator
 ;; If the terminal window is visible hide it.
@@ -335,30 +228,10 @@
 ;; (interactive)
 ;; (multi-vterm-dedicated-toggle)
 ;; (evil-window-decrease-height 18))
-(map! :leader "l" #'toggle-vterm)
-(defun open-vterm()
-  (split-window
-   (selected-window)
-   50)
-  (evil-window-down 10)
-  (multi-vterm-next)
-  (setq vterm-popup-exist t))
-
-(defun close-vterm ()
-    (ignore-errors (evil-window-down 10))
-    (ignore-errors (delete-window))
-    (setq vterm-popup-exist nil))
-
-(defun toggle-vterm ()
-    (interactive)
-    (if vterm-popup-exist
-        (close-vterm)
-      (open-vterm)))
-
 (map! :leader "j" #'multi-vterm-next)
 (map! :leader "k" #'multi-vterm-prev)
 
-
+(setq projectile-auto-discover nil)
 
 (use-package dap-mode
   :custom
@@ -371,27 +244,31 @@
   :after python)
 (add-hook 'python-mode-hook 'python-black-on-save-mode)
 (add-hook 'python-mode-hook #'lsp) ; or lsp-deferred
-(setq python-shell-interpreter "/usr/bin/python")
 (require 'dap-python)
 (setq dap-python-debugger 'debugpy)
 
 (add-hook 'js2-mode-hook 'lsp)
 (require 'dap-node)
 
+(use-package! paredit
+  :after clojure-mode)
 (use-package! cider
   :after clojure-mode
   :config
-  (set-lookup-handlers! 'cider-mode nil))
+  (set-lookup-handlers! 'cider-mode nil)
+  )
+
+(setq cider-merge-sessions 'project)
+
+(add-hook 'clojure-mode-hook 'paredit-mode)
 
 (use-package! clj-refactor
   :after clojure-mode
   :config
   (set-lookup-handlers! 'clj-refactor-mode nil))
 
-;; (setq inferior-lisp-program "/usr/bin/sbcl")
-;; (add-to-list 'load-path "/usr/share/emacs/site-lisp/slime/")
-;; (require 'slime)
-;; (slime-setup)
+(require 'clj-deps-new)
+(setq cider-edit-jack-in-command t)
 
 (require 'treemacs)
 (map! :leader "x" 'treemacs)
@@ -527,117 +404,7 @@
         (org-roam-promote-entire-buffer)
         (save-buffer)))))
 
-(defun capture-todo-done (arg)
-  "Advice func for making an org-roam diary entry when marking a todo as done.
-ARG is ignored, as it only has a value when org-todo is run non-interactively."
-  (when (equal "DONE" (org-get-todo-state))
-    (let ((heading (org-get-heading t t t nil)))
-      (org-roam-dailies-capture-today)
-      (insert heading)
-      (insert "\n")
-      ;; Remove this if you want to be able to edit the entry.
-      (org-capture-finalize)
-    )))
-
-(advice-add 'org-todo :after #'capture-todo-done)
-
-(use-package! deft
-  :custom
-  (deft-directory "~/Documents/Projects/braindump/RoamNotes"))
-
-(use-package yasnippet
-  :config
-  (add-to-list 'yas-snippet-dirs "~/.doom.d/snippets/emacs-lisp-mode")
-  (add-to-list 'yas-snippet-dirs "~/.doom.d/snippets/emacs-lisp-mode/cmake-mode")
-  (yas-global-mode 1))
-
-(defun create-cmake-root(cmake-project-dir-string)
-  (let* ((cmake-file-string (concat cmake-project-dir-string "/CMakeLists.txt"))
-         (main-cpp-string (concat cmake-project-dir-string "/main.cpp"))
-         (build-folder-string (concat cmake-project-dir-string "/build"))
-         (debug-folder-string (concat build-folder-string "/Debug"))
-         (release-folder-string (concat build-folder-string "/Release")))
-        (dired-create-directory build-folder-string)
-        (dired-create-directory debug-folder-string)
-        (dired-create-directory release-folder-string)
-        (with-temp-buffer
-        (cmake-mode)
-        (yas-minor-mode)
-        (yas-expand-snippet (yas-lookup-snippet "cmake_project" 'cmake-mode))
-        (when (file-writable-p cmake-file-string)
-        (write-region (point-min)
-                        (point-max)
-                        cmake-file-string))
-        (delete-region (point-min)
-                       (point-max))
-        (cpp-mode)
-        (yas-minor-mode)
-        (yas-expand-snippet (yas-lookup-snippet "main_cpp" 'cpp-mode))
-        (when (file-writable-p main-cpp-string)
-        (write-region (point-min)
-                        (point-max)
-                        main-cpp-string)))
-    ))
-
-(defun create-cmake-project (project-root string)
-  "Creates a new C++ CMake project"
-  (interactive (list (read-directory-name "Select project root: ")
-                     (read-string "Name of the project: ")))
-  (setq cmake-project-name string)
-  (let* ((cmake-project-dir-string (concat project-root string)))
-                                  (dired-create-directory cmake-project-dir-string)
-                                  (create-cmake-root cmake-project-dir-string)
-                                  (projectile-add-known-project cmake-project-dir-string)))
-
-(defun build-cmake-project(mode)
-  "Builds a CMake project."
-  (let* ((release-mode-string "cmake -S . -B build/ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release && cmake --build build/ && ln -fs build/compile_commands.json")
-         (debug-mode-string "cmake -S . -B build/ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug && cmake --build build/ && ln -fs build/compile_commands.json"))
-    (if (equal mode "Debug")
-        (message "%s" (concat "Debug mode:\n" (shell-command-to-string debug-mode-string)))
-        (message "%s" (concat "Release mode:\n" (shell-command-to-string release-mode-string)))
-    )))
-
-(defun build-cmake-project-debug()
-  "Builds a CMake project in Debug mode."
-  (interactive)
-  (build-cmake-project "Debug"))
-
-(defun build-cmake-project-release()
-  "Builds a CMake project in Release mode."
-  (interactive)
-  (build-cmake-project "Release")
-  )
-
-(defun run-cmake-project (mode args)
-  "Run the CMake project."
-  (let* ((status-code-string "; echo \"Process exited with status code: $?\"")
-         (release-mode-string (concat "time ./build/Release/" (+workspace-current-name) " " args status-code-string))
-         (debug-mode-string (concat "time ./build/Debug/" (+workspace-current-name) " " args status-code-string)))
-    (if (equal mode "Debug")
-        (message "%s" (concat "Debug mode:\n" (shell-command-to-string debug-mode-string)))
-      (message "%s" (concat "Release mode:\n" (shell-command-to-string release-mode-string))))
-  ))
-
-(defun run-cmake-project-debug ()
-  "Run project in Debug mode."
-  (interactive)
-  (let* ((args (read-string "Give arguments, if any: ")))
-    (run-cmake-project "Debug" args))
-  )
-
-(defun run-cmake-project-release ()
-  "Run project in Release mode."
-  (interactive)
-  (let* ((args (read-string "Give arguments, if any: ")))
-    (run-cmake-project "Release" args))
-  )
-
-;; (map! :leader :desc "Create a CMake project" "m p" #'create-cmake-project)
-;; (map! :leader :desc "Build CMake project in Release mode." "m r" #'build-cmake-project-release)
-;; (map! :leader :desc "Build CMake project in Debug mode." "m z" #'build-cmake-project-debug)
-;; (map! :leader :desc "Run CMake project in Debug mode." "m Z" #'run-cmake-project-debug)
-;; (map! :leader :desc "Run CMake project in Release mode." "m R" #'run-cmake-project-release)
+(setq org-fold-core-style 'overlays)
 
 (setq lsp-java-autobuild-enabled nil)
 (defun lsp-java--completing-read-multiple (message items initial-selection)
@@ -668,16 +435,11 @@ ARG is ignored, as it only has a value when org-todo is run non-interactively."
 
 (require 'dap-cpptools)
 
-;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
-;; (add-hook 'dired-mode-hook #'all-the-icons-dired-mode)
-
 (use-package dired-hide-details
   :hook (dired-mode . dired-hide-details-mode))
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
-
-;; (add-to-list 'dired-compress-files-alist '("\\.gz\\'" . "tar $o -r --filesync $i"))
 
   (defun dired-dotfiles-toggle ()
     "Show/hide dot-files"
@@ -699,43 +461,23 @@ ARG is ignored, as it only has a value when org-todo is run non-interactively."
 (setq org-todo-keywords
       (quote ((sequence "TODO(t)" "NEXT(p)" "WAIT(w)" "CANCELLED" "DONE(r)")
               (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))))
-(setq org-agenda-files '("/home/hrothgar32/Org/agenda" ))
+(setq org-agenda-files '("/home/hrothgar32/Dropbox/Org/agenda.org" "/home/hrothgar32/Dropbox/Org/agenda/"))
 
 (setq org-capture-templates
       (quote
             (("t" "Personal todo" entry
-            (file "~/Org/agenda/personal.org")
+            (file "~/Dropbox/Org/agenda/personal.org")
             "* TODO %?\nSCHEDULED: <%(org-read-date)>")
              ("a" "Assignment" entry
-            (file+headline "~/Org/agenda/egyetem.org" "Assignments")
+            (file+headline "~/Dropbox/Org/agenda/egyetem.org" "Assignments")
             "* TODO [#B] %? :@egyetem:@assignment: \nDEADLINE: <%(org-read-date)>")
             ("e" "Exam" entry
-            (file+headline "~/Org/agenda/egyetem.org" "Vizsgák")
+            (file+headline "~/Dropbox/Org/agenda/egyetem.org" "Vizsgák")
             "* TODO [#A] %? :@egyetem:@vizsga: \nSCHEDULED: <%(org-read-date)>")
             ("i" "inbox" entry
-            (file "~/Org/agenda/inbox.org")
+            (file "~/Dropbox/Org/agenda/inbox.org")
             "* TODO %?\nSCHEDULED: <%(org-read-date)>"))
        ))
-
-(defun alm/build-and-deploy-blog()
-  "Builds and deploys my blog."
-  (interactive)
-  (let* ((build-string "hugo && rsync -avz --delete public/ almer:/var/www/html/almos-blog/public"))
-         (message "%s" (shell-command-to-string build-string))))
-(map! :leader :desc "Deploy the blog." "d b" #'alm/build-and-deploy-blog)
-
-(defun alm/build-and-deploy-diskette()
-  "Builds and deploys my diskette."
-  (interactive)
-  (let* ((build-string "hugo && rsync -avz --delete public/ second:/var/www/html/diskette-archives/public"))
-         (message "%s" (shell-command-to-string build-string))))
-(map! :leader :desc "Deploy the site." "d d" #'alm/build-and-deploy-diskette)
-
-(use-package mathpix.el
-  :custom ((mathpix-app-id "zold_almos_gmail_com_673916_1f69c5")
-           (mathpix-app-key "cab0eeec91a7c89af9a62a0cf31b1f5465c985b92b29035c8508cda789ff79d6"))
-  :bind
-  ("C-x m" . mathpix-screenshot))
 
 ;; jaja
 (setq +latex-viewers '(zathura))
@@ -751,8 +493,9 @@ ARG is ignored, as it only has a value when org-todo is run non-interactively."
   :nv
   "z a" 'outline-toggle-children)
 
-(setq! bibtex-completion-bibliography '("/home/hrothgar32/Documents/Projects/braindump/RoamNotes/testLib.bib"))
-(setq! org-cite-global-bibliography '("/home/hrothgar32/Documents/Projects/braindump/RoamNotes/testLib.bib"))
+(setq! bibtex-completion-bibliography '("/home/hrothgar32/Documents/allamvizsga/allamvizsga.bib"))
+(setq! bibtex-completion-pdf-field "File")
+(setq! org-cite-global-bibliography '("/home/hrothgar32/Documents/allamvizsga/allamvizsga.bib"))
 (setq org-cite-csl-styles-dir "~/Zotero/styles")
 (use-package! org-roam-bibtex
   :after org-roam
@@ -764,6 +507,13 @@ ARG is ignored, as it only has a value when org-todo is run non-interactively."
   (orb-roam-ref-format 'org-cite)
   :config
   (org-roam-bibtex-mode))
+
+(org-cite-register-processor 'my-bibtex-org-cite-follow
+  :follow (lambda (_ _) (ivy-bibtex)))
+(setq org-cite-follow-processor 'my-bibtex-org-cite-follow)
+
+(setq org-noter-notes-search-path (list (concat org-roam-directory "/references")))
+(setq org-noter-always-create-frame t)
 
 (set-email-account! "gmail"
   '((mu4e-sent-folder       . "/gmail/[Gmail]/Sent Mail")
@@ -804,3 +554,113 @@ ARG is ignored, as it only has a value when org-todo is run non-interactively."
         message-sendmail-f-is-evil t
         message-sendmail-extra-arguments '("--read-envelope-from")
         message-send-mail-function #'message-send-mail-with-sendmail))
+
+(use-package! dashboard
+  :config
+  (dashboard-setup-startup-hook))
+
+(setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+(setq dashboard-center-content t)
+(setq dashboard-set-heading-icons t)
+(setq dashboard-set-file-icons t)
+
+(setq org-plantuml-jar-path (expand-file-name "/usr/share/java/plantuml/plantuml.jar"))
+(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+(org-babel-do-load-languages 'org-babel-load-languages '((plantuml . t)))
+
+(require 'bison-mode)
+
+(use-package! pdf-tools
+  :mode ("\\.pdf\\'" . pdf-view-mode)
+  :magic ("%PDF" . pdf-view-mode)
+  :init
+  (after! pdf-annot
+    (defun +pdf-cleanup-windows-h ()
+      "Kill left-over annotation buffers when the document is killed."
+      (when (buffer-live-p pdf-annot-list-document-buffer)
+        (pdf-info-close pdf-annot-list-document-buffer))
+      (when (buffer-live-p pdf-annot-list-buffer)
+        (kill-buffer pdf-annot-list-buffer))
+      (let ((contents-buffer (get-buffer "*Contents*")))
+        (when (and contents-buffer (buffer-live-p contents-buffer))
+          (kill-buffer contents-buffer))))
+    (add-hook! 'pdf-view-mode-hook
+      (add-hook 'kill-buffer-hook #'+pdf-cleanup-windows-h nil t)))
+
+  :config
+  (defadvice! +pdf--install-epdfinfo-a (fn &rest args)
+    "Install epdfinfo after the first PDF file, if needed."
+    :around #'pdf-view-mode
+    (if (and (require 'pdf-info nil t)
+             (or (pdf-info-running-p)
+                 (ignore-errors (pdf-info-check-epdfinfo) t)))
+        (apply fn args)
+      ;; If we remain in pdf-view-mode, it'll spit out cryptic errors. This
+      ;; graceful failure is better UX.
+      (fundamental-mode)
+      (message "Viewing PDFs in Emacs requires epdfinfo. Use `M-x pdf-tools-install' to build it")))
+
+  ;; Despite its namesake, this does not call `pdf-tools-install', it only sets
+  ;; up hooks, auto-mode-alist/magic-mode-alist entries, global modes, and
+  ;; refreshes pdf-view-mode buffers, if any.
+  ;;
+  ;; I avoid calling `pdf-tools-install' directly because `pdf-tools' is easy to
+  ;; prematurely load in the background (e.g. when exporting an org file or by
+  ;; packages like org-pdftools). And I don't want pdf-tools to suddenly block
+  ;; Emacs and spew out compiler output for a few minutes in those cases. It's
+  ;; abysmal UX. The `pdf-view-mode' advice above works around this with a less
+  ;; cryptic failure message, at least.
+  (pdf-tools-install-noverify)
+
+  ;; For consistency with other special modes
+  (map! :map pdf-view-mode-map :gn "q" #'kill-current-buffer)
+
+  (setq-default pdf-view-display-size 'fit-page)
+  ;; Enable hiDPI support, but at the cost of memory! See politza/pdf-tools#51
+  (setq pdf-view-use-scaling t
+        pdf-view-use-imagemagick nil)
+
+  ;; Handle PDF-tools related popups better
+  (set-popup-rules!
+    '(("^\\*Outline*" :side right :size 40 :select nil)
+      ("^\\*Edit Annotation " :quit nil)
+      ("\\(?:^\\*Contents\\|'s annots\\*$\\)" :ignore t)))
+
+  ;; The mode-line does serve any useful purpose is annotation windows
+  (add-hook 'pdf-annot-list-mode-hook #'hide-mode-line-mode)
+
+  ;; HACK Fix #1107: flickering pdfs when evil-mode is enabled
+  (setq-hook! 'pdf-view-mode-hook evil-normal-state-cursor (list nil))
+
+  ;; HACK Refresh FG/BG for pdfs when `pdf-view-midnight-colors' is changed by a
+  ;;      theme or with `setq!'.
+  ;; TODO PR this upstream?
+  (defun +pdf-reload-midnight-minor-mode-h ()
+    (when pdf-view-midnight-minor-mode
+      (pdf-info-setoptions
+       :render/foreground (car pdf-view-midnight-colors)
+       :render/background (cdr pdf-view-midnight-colors)
+       :render/usecolors t)
+      (pdf-cache-clear-images)
+      (pdf-view-redisplay t)))
+  (put 'pdf-view-midnight-colors 'custom-set
+       (lambda (sym value)
+         (set-default sym value)
+         (dolist (buffer (doom-buffers-in-mode 'pdf-view-mode))
+           (with-current-buffer buffer
+             (if (get-buffer-window buffer)
+                 (+pdf-reload-midnight-minor-mode-h)
+               ;; Defer refresh for buffers that aren't visible, to avoid
+               ;; blocking Emacs for too long while changing themes.
+               (add-hook 'doom-switch-buffer-hook #'+pdf-reload-midnight-minor-mode-h
+                         nil 'local))))))
+
+  ;; Silence "File *.pdf is large (X MiB), really open?" prompts for pdfs
+  (defadvice! +pdf-suppress-large-file-prompts-a (fn size op-type filename &optional offer-raw)
+    :around #'abort-if-file-too-large
+    (unless (string-match-p "\\.pdf\\'" filename)
+      (funcall fn size op-type filename offer-raw))))
+
+
+(use-package! saveplace-pdf-view
+  :after pdf-view)

@@ -45,36 +45,20 @@
 (package! org-superstar)
 (package! yaml-mode)
 (package! python-black)
-(package! dap-mode)
 (package! org-tree-slide)
 (package! org-fancy-priorities)
-(package! ox-hugo)
-(package! aio)
-(package! pyvenv)
 (package! org-mime)
-(package! vterm)
-(package! multi-vterm)
 (package! all-the-icons-dired)
 (package! treemacs-all-the-icons)
-(package! dired-dd)
 (package! org-pandoc-import
   :recipe (:host github
            :repo "tecosaur/org-pandoc-import"
            :files ("*.el" "filters" "preprocessors")))
-(package! all-the-icons-ivy-rich)
-(package! mathpix.el
-  :recipe (:host github
-           :repo "jethrokuan/mathpix.el"
-           :files ("*.el" "filters" "preprocessors")))
-(package! tree-mode)
 (unpin! org-roam)
-(package! websocket)
 (package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
 (package! dired-narrow)
 (package! org-fragtog)
-(package! spacemacs-theme)
 (package! org-bullets)
-(package! dashboard)
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 (unpin! bibtex-completion helm-bibtex ivy-bibtex)
@@ -82,6 +66,32 @@
   :recipe (:host gitlab
            :repo "matsievskiysv/math-preview"
            :files ("*.el" "filters" "preprocessors")))
+(unpin! (:tools lsp))
+(unpin! (:lang cider))
+(package! ox-hugo)
+(package! dashboard)
+(package! emacs-clj-deps-new
+  :recipe (:host github
+           :repo "jpe90/emacs-clj-deps-new"
+           :files ("*.el" "filters" "preprocessors")))
+(package! bison-mode
+  :recipe (:host github
+           :repo "Wilfred/bison-mode"
+           :files ("*.el" "filters" "preprocessors")))
+
+(package! pdf-tools :recipe
+          (:host github
+                 :repo "dalanicolai/pdf-tools"
+                 :branch "pdf-roll"
+                 :files ("lisp/*.el"
+                         "README"
+                         ("build" "Makefile")
+                         ("build" "server")
+                         (:exclude "lisp/tablist.el" "lisp/tablist-filter.el"))))
+(package! image-roll :recipe
+          (:host github
+                 :repo "dalanicolai/image-roll.el"))
+(package! saveplace-pdf-view :pin "54ed966b842501c3c092dbf57b372e37b033c578")
 ;; Doom's packages are pinned to a specific commit and updated from release to
 ;; release. The `unpin!' macro allows you to unpin single packages...
 ;(unpin! pinned-package)
